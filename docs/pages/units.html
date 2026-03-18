@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Units
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Units — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html" class="active">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Units</h1>
+        <p class="lead">Creating and balancing units &mdash; from basic infantry to legendary bosses.</p>
+
+        <h2 id="parameter-reference">Full Parameter Reference</h2>
+        <p>Pass these options as the second argument to <code>s.unit()</code>.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>hp</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td>&mdash;</td>
+              <td>Hit points. The unit dies when HP reaches 0. <strong>Required.</strong></td>
+            </tr>
+            <tr>
+              <td><code>attack</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td>&mdash;</td>
+              <td>Base attack damage dealt per strike. <strong>Required.</strong></td>
+            </tr>
+            <tr>
+              <td><code>defense</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Flat damage reduction applied to incoming attacks.</td>
+            </tr>
+            <tr>
+              <td><code>range</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>1</code></td>
+              <td>Attack range in hexes. <code>1</code> = melee, <code>2+</code> = ranged.</td>
+            </tr>
+            <tr>
+              <td><code>speed</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>2</code></td>
+              <td>Movement points per turn. Spent against biome <code>moveCost</code>.</td>
+            </tr>
+            <tr>
+              <td><code>visionRange</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>3</code></td>
+              <td>Number of hexes the unit can see (before biome modifiers).</td>
+            </tr>
+            <tr>
+              <td><code>cost</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><code>{}</code></td>
+              <td>Resource cost to produce. Example: <code>{ gold: 50, iron: 10 }</code>.</td>
+            </tr>
+            <tr>
+              <td><code>productionTime</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>1</code></td>
+              <td>Number of turns required to produce this unit from a building.</td>
+            </tr>
+            <tr>
+              <td><code>color</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td>&mdash;</td>
+              <td>Hex color used to render the unit on the map.</td>
+            </tr>
+            <tr>
+              <td><code>abilities</code></td>
+              <td><span class="badge badge-type">array</span></td>
+              <td><code>[]</code></td>
+              <td>List of ability IDs this unit can use. Each must be defined via <code>s.ability()</code>.</td>
+            </tr>
+            <tr>
+              <td><code>carryCap</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Maximum resources this unit can carry (for harvester/transport roles).</td>
+            </tr>
+            <tr>
+              <td><code>upkeep</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><code>{}</code></td>
+              <td>Resources drained per turn while the unit is alive. Example: <code>{ mana: 5 }</code>.</td>
+            </tr>
+            <tr>
+              <td><code>neutral</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><code>false</code></td>
+              <td>If <code>true</code>, the unit belongs to no player. Appears on the map as an obstacle or boss.</td>
+            </tr>
+            <tr>
+              <td><code>spawnGroup</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><code>null</code></td>
+              <td>Group ID for neutral units that spawn together in clusters.</td>
+            </tr>
+            <tr>
+              <td><code>aoeRadius</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Area-of-effect radius for attacks. <code>0</code> = single target, <code>1+</code> = splash.</td>
+            </tr>
+            <tr>
+              <td><code>immunities</code></td>
+              <td><span class="badge badge-type">array</span></td>
+              <td><code>[]</code></td>
+              <td>List of damage types or effects this unit is immune to (e.g., <code>["fire", "poison"]</code>).</td>
+            </tr>
+            <tr>
+              <td><code>levels</code></td>
+              <td><span class="badge badge-type">array</span></td>
+              <td><code>[]</code></td>
+              <td>Array of level-up definitions. See <a href="#level-system">Level System</a> below.</td>
+            </tr>
+            <tr>
+              <td><code>expPerKill</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Experience points awarded to the attacker when this unit is killed.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="archetypes">Unit Archetypes</h2>
+        <p>Most units fall into one of six archetypes. Each archetype fills a distinct role on the battlefield. Mixing archetypes forces players to build diverse armies rather than spamming a single strong unit.</p>
+
+        <h3>Melee</h3>
+        <p>Close-range fighters with moderate HP and attack. They form the backbone of any army &mdash; cheap, fast to produce, and effective in numbers.</p>
+
+        <h3>Ranged</h3>
+        <p>Units with <code>range: 2+</code> that deal damage from a distance. They are fragile up close, so they need melee units to screen for them.</p>
+
+        <h3>Tank</h3>
+        <p>High HP and defense, low speed. Tanks absorb damage and hold positions. They are expensive but hard to kill without focused fire or abilities.</p>
+
+        <h3>Support</h3>
+        <p>Units that buff allies or debuff enemies through abilities rather than raw stats. Often have <code>upkeep</code> costs to offset their utility.</p>
+
+        <h3>Siege</h3>
+        <p>Slow, powerful units with <code>aoeRadius</code> that excel at destroying buildings and clustered groups. Vulnerable to fast flankers.</p>
+
+        <h3>Scout</h3>
+        <p>Fast units with high <code>speed</code> and <code>visionRange</code>. Low combat stats, but invaluable for map control and early exploration.</p>
+
+        <h2 id="level-system">Level System</h2>
+        <p>The level system lets units grow stronger through combat. When the scenario's <code>experienceSystem</code> is enabled, units accumulate XP by killing enemies and level up when they hit the required thresholds.</p>
+
+        <p>Define levels as an array on the unit. Each entry specifies the XP required and the stat bonuses granted at that level:</p>
+
+        <pre><code>s.unit("knight", {
+  hp: 80,
+  attack: 18,
+  defense: 12,
+  speed: 2,
+  cost: { gold: 60 },
+  color: "#c0c0c0",
+  levels: [
+    { expRequired: 20,  bonuses: { hp: 10, attack: 3 } },
+    { expRequired: 50,  bonuses: { hp: 15, attack: 5, defense: 3 } },
+    { expRequired: 100, bonuses: { hp: 20, attack: 8, defense: 5 } }
+  ]
+});</code></pre>
+
+        <p>Bonuses are cumulative &mdash; a level-3 knight in the example above would have <code>+45 HP</code>, <code>+16 attack</code>, and <code>+8 defense</code> on top of its base stats.</p>
+
+        <div class="callout callout-tip">
+          <strong>Scale expRequired exponentially.</strong>
+          <p>Linear XP thresholds let units snowball too fast. A good rule of thumb is to roughly double the requirement for each level: 20, 50, 100 is more balanced than 20, 40, 60.</p>
+        </div>
+
+        <h2 id="experience-system">Experience &amp; XP Flow</h2>
+        <p>Each unit can define <code>expPerKill</code> &mdash; the amount of experience the <em>attacker</em> earns when this unit dies. This creates a natural XP economy:</p>
+
+        <ul>
+          <li><strong>Weak units</strong> (skeletons, drones) give low XP &mdash; they are easy to farm but not very rewarding.</li>
+          <li><strong>Strong units</strong> (knights, combat robots) give moderate XP &mdash; killing them is meaningful.</li>
+          <li><strong>Boss units</strong> (dragons, rogue AIs) give high XP &mdash; defeating them is a major power spike.</li>
+        </ul>
+
+        <pre><code>// Low XP fodder
+s.unit("skeleton", { hp: 20, attack: 5, expPerKill: 5, neutral: true });
+
+// Medium XP standard unit
+s.unit("knight", { hp: 80, attack: 18, expPerKill: 15 });
+
+// High XP boss
+s.unit("dragon", { hp: 300, attack: 40, expPerKill: 50, neutral: true });</code></pre>
+
+        <div class="callout callout-tip">
+          <strong>Tie XP rewards to unit strength, not cost.</strong>
+          <p>A unit that is hard to kill should give more XP regardless of its resource cost. This rewards skillful engagements over simply targeting cheap units.</p>
+        </div>
+
+        <h2 id="abilities-on-units">Abilities on Units</h2>
+        <p>The <code>abilities</code> array links a unit to one or more abilities defined with <code>s.ability()</code>. This is how you give units special moves, passive effects, and cooldown-based powers.</p>
+
+        <pre><code>// First define the ability
+s.ability("charge", {
+  type: "active",
+  damage: 25,
+  range: 3,
+  cooldown: 2,
+  description: "Rush forward and strike with extra force."
+});
+
+// Then assign it to a unit
+s.unit("knight", {
+  hp: 80,
+  attack: 18,
+  defense: 12,
+  speed: 2,
+  cost: { gold: 60 },
+  color: "#c0c0c0",
+  abilities: ["charge"]
+});</code></pre>
+
+        <p>A unit can have multiple abilities. See the <a href="abilities.html">Abilities guide</a> for the full ability parameter reference.</p>
+
+        <h2 id="neutral-units">Neutral Units</h2>
+        <p>Setting <code>neutral: true</code> makes a unit belong to no player. Neutral units appear on the map during generation and serve as obstacles, objectives, or environmental threats.</p>
+
+        <ul>
+          <li>Neutral units <strong>do not require a cost</strong> &mdash; they are placed by the map generator, not produced by buildings.</li>
+          <li>Use <code>spawnGroup</code> to cluster neutral units together. All units with the same <code>spawnGroup</code> ID appear near each other on the map.</li>
+          <li>Neutral units can have abilities, XP rewards, and full combat stats just like player units.</li>
+        </ul>
+
+        <pre><code>s.unit("skeleton", {
+  hp: 20,
+  attack: 5,
+  defense: 2,
+  speed: 2,
+  color: "#d4c9a8",
+  neutral: true,
+  spawnGroup: "undead_camp",
+  expPerKill: 5
+});
+
+s.unit("dragon", {
+  hp: 300,
+  attack: 40,
+  defense: 25,
+  speed: 3,
+  visionRange: 5,
+  color: "#ff4444",
+  neutral: true,
+  immunities: ["fire"],
+  abilities: ["flame_breath"],
+  expPerKill: 50
+});</code></pre>
+
+        <h2 id="upkeep-system">Upkeep System</h2>
+        <p>The <code>upkeep</code> parameter drains resources from the owning player every turn. This prevents unlimited army scaling and forces players to balance their economy against their military.</p>
+
+        <pre><code>s.unit("mage", {
+  hp: 40,
+  attack: 22,
+  defense: 4,
+  range: 2,
+  speed: 2,
+  cost: { gold: 80 },
+  upkeep: { mana: 5 },
+  color: "#9c27b0",
+  abilities: ["fireball", "shield"]
+});</code></pre>
+
+        <div class="callout callout-tip">
+          <strong>Use upkeep to gate powerful units.</strong>
+          <p>A mage with mana upkeep stays balanced because the player cannot field an unlimited number of them &mdash; eventually the mana economy runs dry. This creates a natural soft cap on elite units.</p>
+        </div>
+
+        <h2 id="balance-tips">Balance Tips</h2>
+        <p>Use this table as a starting point for each archetype. Adjust based on your scenario's resource economy and pacing.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Archetype</th>
+              <th>HP</th>
+              <th>Attack</th>
+              <th>Defense</th>
+              <th>Range</th>
+              <th>Speed</th>
+              <th>Cost (Gold)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Melee</td>
+              <td>50&ndash;80</td>
+              <td>10&ndash;20</td>
+              <td>5&ndash;15</td>
+              <td>1</td>
+              <td>2&ndash;3</td>
+              <td>20&ndash;60</td>
+            </tr>
+            <tr>
+              <td>Ranged</td>
+              <td>30&ndash;50</td>
+              <td>12&ndash;22</td>
+              <td>2&ndash;8</td>
+              <td>2&ndash;3</td>
+              <td>2</td>
+              <td>30&ndash;70</td>
+            </tr>
+            <tr>
+              <td>Tank</td>
+              <td>100&ndash;200</td>
+              <td>8&ndash;15</td>
+              <td>15&ndash;30</td>
+              <td>1</td>
+              <td>1&ndash;2</td>
+              <td>60&ndash;120</td>
+            </tr>
+            <tr>
+              <td>Support</td>
+              <td>30&ndash;50</td>
+              <td>5&ndash;12</td>
+              <td>3&ndash;10</td>
+              <td>1&ndash;2</td>
+              <td>2</td>
+              <td>40&ndash;80</td>
+            </tr>
+            <tr>
+              <td>Siege</td>
+              <td>60&ndash;100</td>
+              <td>25&ndash;40</td>
+              <td>5&ndash;10</td>
+              <td>2&ndash;3</td>
+              <td>1</td>
+              <td>80&ndash;150</td>
+            </tr>
+            <tr>
+              <td>Scout</td>
+              <td>20&ndash;40</td>
+              <td>5&ndash;10</td>
+              <td>2&ndash;5</td>
+              <td>1</td>
+              <td>4&ndash;5</td>
+              <td>15&ndash;40</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="castle-examples">Castle Scenario Examples</h2>
+        <p>The Castle scenario features a classic fantasy army with six unit types.</p>
+
+        <h3>Knight (Melee Tank)</h3>
+        <p>The backbone of the Castle army. High HP, solid defense, and the <code>charge</code> ability for burst damage.</p>
+        <pre><code>s.unit("knight", {
+  hp: 80,
+  attack: 18,
+  defense: 12,
+  range: 1,
+  speed: 2,
+  cost: { gold: 60 },
+  color: "#c0c0c0",
+  abilities: ["charge"],
+  expPerKill: 15,
+  levels: [
+    { expRequired: 20,  bonuses: { hp: 10, attack: 3 } },
+    { expRequired: 50,  bonuses: { hp: 15, attack: 5, defense: 3 } },
+    { expRequired: 100, bonuses: { hp: 20, attack: 8, defense: 5 } }
+  ]
+});</code></pre>
+
+        <h3>Archer (Ranged)</h3>
+        <p>Long-range damage dealer. Fragile in melee but punishes units that advance without cover.</p>
+        <pre><code>s.unit("archer", {
+  hp: 35,
+  attack: 14,
+  defense: 3,
+  range: 3,
+  speed: 2,
+  visionRange: 4,
+  cost: { gold: 40 },
+  color: "#8bc34a",
+  expPerKill: 10,
+  levels: [
+    { expRequired: 15, bonuses: { attack: 3, range: 1 } },
+    { expRequired: 40, bonuses: { attack: 5, hp: 10 } }
+  ]
+});</code></pre>
+
+        <h3>Mage (Caster with Upkeep)</h3>
+        <p>Powerful ranged attacker with abilities, gated by mana upkeep. The glass cannon of the roster.</p>
+        <pre><code>s.unit("mage", {
+  hp: 40,
+  attack: 22,
+  defense: 4,
+  range: 2,
+  speed: 2,
+  cost: { gold: 80 },
+  upkeep: { mana: 5 },
+  color: "#9c27b0",
+  abilities: ["fireball", "shield"],
+  expPerKill: 18,
+  levels: [
+    { expRequired: 25, bonuses: { attack: 5 } },
+    { expRequired: 60, bonuses: { attack: 8, hp: 10 } }
+  ]
+});</code></pre>
+
+        <h3>Catapult (Siege AOE)</h3>
+        <p>Slow but devastating. Area-of-effect attacks smash buildings and clustered units alike.</p>
+        <pre><code>s.unit("catapult", {
+  hp: 70,
+  attack: 30,
+  defense: 5,
+  range: 3,
+  speed: 1,
+  aoeRadius: 1,
+  cost: { gold: 120, wood: 40 },
+  productionTime: 3,
+  color: "#795548",
+  expPerKill: 20
+});</code></pre>
+
+        <h3>Dragon (Neutral Boss)</h3>
+        <p>A fearsome neutral boss guarding high-value map locations. Immune to fire, equipped with flame breath, and worth massive XP.</p>
+        <pre><code>s.unit("dragon", {
+  hp: 300,
+  attack: 40,
+  defense: 25,
+  range: 2,
+  speed: 3,
+  visionRange: 5,
+  color: "#ff4444",
+  neutral: true,
+  immunities: ["fire"],
+  abilities: ["flame_breath"],
+  expPerKill: 50
+});</code></pre>
+
+        <h3>Skeleton (Neutral Swarm)</h3>
+        <p>Weak neutral units that spawn in groups. Easy XP for early-game leveling, but dangerous in numbers if ignored.</p>
+        <pre><code>s.unit("skeleton", {
+  hp: 20,
+  attack: 5,
+  defense: 2,
+  range: 1,
+  speed: 2,
+  color: "#d4c9a8",
+  neutral: true,
+  spawnGroup: "undead_camp",
+  expPerKill: 5
+});</code></pre>
+
+        <h2 id="cyberpunk-examples">Cyberpunk Scenario Examples</h2>
+        <p>The Cyberpunk scenario replaces swords and sorcery with drones, hackers, and rogue AIs.</p>
+
+        <h3>Drone (Fast Scout)</h3>
+        <p>Cheap, fast, and disposable. Excellent for early scouting and map control.</p>
+        <pre><code>s.unit("drone", {
+  hp: 25,
+  attack: 8,
+  defense: 2,
+  range: 1,
+  speed: 5,
+  visionRange: 5,
+  cost: { credits: 15 },
+  color: "#00bcd4",
+  expPerKill: 4
+});</code></pre>
+
+        <h3>Combat Robot (Versatile)</h3>
+        <p>A well-rounded mid-tier unit. Solid in both offense and defense with no major weaknesses.</p>
+        <pre><code>s.unit("combat_robot", {
+  hp: 70,
+  attack: 16,
+  defense: 10,
+  range: 2,
+  speed: 2,
+  cost: { credits: 55, alloy: 15 },
+  color: "#607d8b",
+  expPerKill: 14,
+  levels: [
+    { expRequired: 20, bonuses: { attack: 4, defense: 2 } },
+    { expRequired: 50, bonuses: { hp: 20, attack: 6 } }
+  ]
+});</code></pre>
+
+        <h3>Hacker (Building Attacker)</h3>
+        <p>Specialized unit that excels at disabling and destroying enemy buildings. Weak in direct combat but devastating against infrastructure.</p>
+        <pre><code>s.unit("hacker", {
+  hp: 30,
+  attack: 10,
+  defense: 3,
+  range: 2,
+  speed: 2,
+  cost: { credits: 50 },
+  upkeep: { bandwidth: 3 },
+  color: "#76ff03",
+  abilities: ["system_hack", "disable_turret"],
+  expPerKill: 12
+});</code></pre>
+
+        <h3>Colossus (Heavy)</h3>
+        <p>The Cyberpunk tank. Massive HP and area damage make it a slow-moving wrecking ball.</p>
+        <pre><code>s.unit("colossus", {
+  hp: 200,
+  attack: 28,
+  defense: 20,
+  range: 1,
+  speed: 1,
+  aoeRadius: 1,
+  cost: { credits: 140, alloy: 50 },
+  productionTime: 4,
+  color: "#455a64",
+  expPerKill: 25,
+  levels: [
+    { expRequired: 30, bonuses: { hp: 30, defense: 5 } },
+    { expRequired: 70, bonuses: { hp: 40, attack: 10 } }
+  ]
+});</code></pre>
+
+        <h3>Rogue AI (Neutral)</h3>
+        <p>A dangerous neutral boss that controls a zone of the map. High XP reward for the team that takes it down.</p>
+        <pre><code>s.unit("rogue_ai", {
+  hp: 250,
+  attack: 35,
+  defense: 20,
+  range: 3,
+  speed: 2,
+  visionRange: 6,
+  color: "#ff1744",
+  neutral: true,
+  abilities: ["emp_blast", "self_repair"],
+  expPerKill: 45
+});</code></pre>
+
+        <h3>Mutant (Neutral, Toxic)</h3>
+        <p>Neutral units immune to poison that roam toxic zones. They spawn in packs and are resistant to environmental damage.</p>
+        <pre><code>s.unit("mutant", {
+  hp: 45,
+  attack: 12,
+  defense: 6,
+  range: 1,
+  speed: 3,
+  color: "#aeea00",
+  neutral: true,
+  spawnGroup: "mutant_pack",
+  immunities: ["poison"],
+  expPerKill: 8
+});</code></pre>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

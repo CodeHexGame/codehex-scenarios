@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — DSL Reference
+  Complete reference for every function in the scenario DSL.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSL Reference — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html" class="active">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <!-- Right-side Table of Contents -->
+    <div class="toc">
+      <div class="toc-title">On This Page</div>
+      <a href="#s-ability">s.ability</a>
+      <a href="#s-audio">s.audio</a>
+      <a href="#s-aura">s.aura</a>
+      <a href="#s-biome">s.biome</a>
+      <a href="#s-building">s.building</a>
+      <a href="#s-description">s.description</a>
+      <a href="#s-event">s.event</a>
+      <a href="#s-mapgen">s.mapgen</a>
+      <a href="#s-name">s.name</a>
+      <a href="#s-observers">s.observers</a>
+      <a href="#s-overlay">s.overlay</a>
+      <a href="#s-resource">s.resource</a>
+      <a href="#s-resourceCap">s.resourceCap</a>
+      <a href="#s-respawn">s.respawn</a>
+      <a href="#s-rules">s.rules</a>
+      <a href="#s-sprites">s.sprites</a>
+      <a href="#s-startCondition">s.startCondition</a>
+      <a href="#s-statusEffect">s.statusEffect</a>
+      <a href="#s-thumbnail">s.thumbnail</a>
+      <a href="#s-uiTheme">s.uiTheme</a>
+      <a href="#s-unit">s.unit</a>
+      <a href="#s-version">s.version</a>
+      <a href="#s-victoryCondition">s.victoryCondition</a>
+    </div>
+
+    <main class="main">
+      <div class="content">
+        <h1>DSL Reference</h1>
+        <p class="lead">Complete reference for every function available inside <code>scenario("id", s =&gt; { ... })</code>. All functions are called on the scenario builder object <code>s</code>.</p>
+
+        <input type="text" class="search-box" placeholder="Search functions...">
+
+        <div class="callout callout-info">
+          <strong>Tip</strong>
+          Use the search box above to filter functions by name, parameter, or keyword. The table of contents on the right links to each entry.
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.ability                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-ability">
+          <h3>s.ability()</h3>
+          <div class="signature">s.ability(name: string, options: object)</div>
+          <div class="description">
+            Defines a special ability that can be assigned to units. Abilities have cooldowns, costs, and can deal damage, heal, or apply status effects in an area.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this ability.</td></tr>
+              <tr><td>cooldown</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Number of turns before the ability can be used again.</td></tr>
+              <tr><td>range</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>How many hexes away the ability can reach.</td></tr>
+              <tr><td>damage</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Base damage dealt to the target.</td></tr>
+              <tr><td>damageMulti</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1.0</span></td><td>Multiplier applied to the base damage.</td></tr>
+              <tr><td>aoeRadius</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Radius of the area-of-effect in hexes. 0 means single-target.</td></tr>
+              <tr><td>cost</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Resource cost to activate, e.g. <code>{ mana: 20 }</code>.</td></tr>
+              <tr><td>damageType</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"physical"</span></td><td>Type of damage: <code>"physical"</code>, <code>"magic"</code>, <code>"fire"</code>, <code>"poison"</code>, etc.</td></tr>
+              <tr><td>effect</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">null</span></td><td>Name of a status effect to apply on hit (must match a defined <code>s.statusEffect</code>).</td></tr>
+              <tr><td>effectDuration</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Number of turns the applied status effect lasts.</td></tr>
+              <tr><td>targetsCount</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Maximum number of targets the ability can hit (within AOE).</td></tr>
+              <tr><td>targetType</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"enemy"</span></td><td>Who can be targeted: <code>"enemy"</code>, <code>"friendly"</code>, <code>"all"</code>, <code>"self"</code>.</td></tr>
+              <tr><td>healAmount</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>HP restored to the target. Used for healing abilities.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.ability("fireball", {
+  cooldown: 3,
+  range: 4,
+  damage: 25,
+  damageType: "fire",
+  aoeRadius: 2,
+  cost: { mana: 30 },
+  effect: "burning",
+  effectDuration: 2,
+  targetsCount: 5,
+  targetType: "enemy"
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.audio                                                           -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-audio">
+          <h3>s.audio()</h3>
+          <div class="signature">s.audio(config: object)</div>
+          <div class="description">
+            Configures the scenario's music playlist and sound effects. Music tracks loop in order; sounds are triggered by game events.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>music</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">[]</span></td><td>Array of music file paths relative to the scenario's <code>audio/</code> folder.</td></tr>
+              <tr><td>sounds</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of event names to sound file paths, e.g. <code>{ attack: "sfx/hit.ogg" }</code>.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.audio({
+  music: [
+    "audio/theme_main.ogg",
+    "audio/theme_battle.ogg"
+  ],
+  sounds: {
+    attack: "audio/sfx/sword.ogg",
+    build: "audio/sfx/hammer.ogg",
+    death: "audio/sfx/death.ogg",
+    victory: "audio/sfx/fanfare.ogg"
+  }
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.aura                                                            -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-aura">
+          <h3>s.aura()</h3>
+          <div class="signature">s.aura(name: string, options: object)</div>
+          <div class="description">
+            Defines a named aura that can be emitted by buildings or units. Auras apply passive effects to all friendly units within a radius each turn.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this aura.</td></tr>
+              <tr><td>effect</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-required">required</span></td><td>Stat modifiers applied to affected units, e.g. <code>{ attack: 3, defense: 2 }</code>.</td></tr>
+              <tr><td>stackable</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Whether multiple instances of this aura stack their effects.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.aura("rallying_cry", {
+  effect: { attack: 5, defense: 2 },
+  stackable: false
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.biome                                                           -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-biome">
+          <h3>s.biome()</h3>
+          <div class="signature">s.biome(name: string, options: object)</div>
+          <div class="description">
+            Defines a terrain type that tiles the hex map. Biomes affect movement, combat, vision, and resource harvesting. At least one biome must be defined for a valid scenario.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this biome.</td></tr>
+              <tr><td>color</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Hex color used to render this biome on the map, e.g. <code>"#8db360"</code>.</td></tr>
+              <tr><td>moveCost</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Movement points required to enter this tile. Higher values slow units down.</td></tr>
+              <tr><td>defenseBonus</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Flat bonus added to a defending unit's defense stat on this tile.</td></tr>
+              <tr><td>attackBonus</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Flat bonus added to an attacking unit's attack stat on this tile.</td></tr>
+              <tr><td>harvestBonus</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Extra resources gained when harvesting on this tile.</td></tr>
+              <tr><td>visionBonus</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Extra vision range granted to units standing on this tile.</td></tr>
+              <tr><td>visionPenalty</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Reduction in vision range when looking <em>into</em> this tile (e.g. dense forest).</td></tr>
+              <tr><td>damagePerTurn</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>HP lost by any unit standing on this tile at the start of each turn.</td></tr>
+              <tr><td>impassable</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, no unit can enter this tile (e.g. deep water, void).</td></tr>
+              <tr><td>allowedUnits</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">null</span></td><td>If set, only the listed unit types may enter. <code>null</code> means all units allowed.</td></tr>
+              <tr><td>spawnWeight</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Relative probability weight used by the map generator when placing this biome.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.biome("forest", {
+  color: "#2d5a27",
+  moveCost: 2,
+  defenseBonus: 3,
+  visionPenalty: 1,
+  harvestBonus: 1,
+  spawnWeight: 3
+});
+
+s.biome("lava", {
+  color: "#ff4500",
+  moveCost: 3,
+  damagePerTurn: 10,
+  impassable: false,
+  spawnWeight: 0.5
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.building                                                        -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-building">
+          <h3>s.building()</h3>
+          <div class="signature">s.building(name: string, options: object)</div>
+          <div class="description">
+            Defines a building that players can construct. Buildings can produce units, provide auras, store resources, auto-attack enemies, and be upgraded through levels.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this building.</td></tr>
+              <tr><td>hp</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">100</span></td><td>Maximum hit points of the building.</td></tr>
+              <tr><td>defense</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">5</span></td><td>Flat damage reduction applied to incoming attacks.</td></tr>
+              <tr><td>size</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Number of hex tiles this building occupies.</td></tr>
+              <tr><td>cost</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-required">required</span></td><td>Resource cost to construct, e.g. <code>{ gold: 100, wood: 50 }</code>.</td></tr>
+              <tr><td>produces</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">[]</span></td><td>List of unit names this building can train.</td></tr>
+              <tr><td>visionRange</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">3</span></td><td>How far the building reveals the fog of war.</td></tr>
+              <tr><td>aura</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">null</span></td><td>Name of an aura this building emits (must match a defined <code>s.aura</code>).</td></tr>
+              <tr><td>auraRadius</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">2</span></td><td>Radius in hexes for the building's aura.</td></tr>
+              <tr><td>auraEffect</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">null</span></td><td>Inline aura effect object (alternative to referencing a named aura).</td></tr>
+              <tr><td>storage</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Resource storage capacity, e.g. <code>{ gold: 500 }</code>. Increases the player's resource cap.</td></tr>
+              <tr><td>maxLevel</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Maximum upgrade level for this building.</td></tr>
+              <tr><td>levels</td><td><span class="badge badge-type">object[]</span></td><td><span class="badge badge-default">[]</span></td><td>Array of per-level stat overrides, e.g. <code>[{ hp: 150, defense: 8 }]</code>.</td></tr>
+              <tr><td>passiveHarvest</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">null</span></td><td>Resources generated each turn, e.g. <code>{ gold: 5 }</code>.</td></tr>
+              <tr><td>mustBePlacedOn</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">null</span></td><td>Restrict placement to specific biomes, e.g. <code>["plains", "forest"]</code>.</td></tr>
+              <tr><td>passable</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, any unit can walk through this building's tile.</td></tr>
+              <tr><td>ownTeamPassable</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">true</span></td><td>If true, the owning player's units can walk through this building.</td></tr>
+              <tr><td>autoAttack</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, the building automatically attacks nearby enemies each turn.</td></tr>
+              <tr><td>attack</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Base attack damage when <code>autoAttack</code> is enabled.</td></tr>
+              <tr><td>range</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">2</span></td><td>Attack range in hexes when <code>autoAttack</code> is enabled.</td></tr>
+              <tr><td>productionSpeedBonus</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Flat reduction in production time for all units trained here.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.building("barracks", {
+  hp: 200,
+  defense: 10,
+  cost: { gold: 120, wood: 60 },
+  produces: ["warrior", "archer", "knight"],
+  visionRange: 4,
+  storage: { gold: 200 },
+  maxLevel: 3,
+  levels: [
+    { hp: 250, defense: 12, productionSpeedBonus: 1 },
+    { hp: 300, defense: 15, productionSpeedBonus: 2 }
+  ],
+  mustBePlacedOn: ["plains", "forest"]
+});
+
+s.building("watchtower", {
+  hp: 80,
+  defense: 5,
+  cost: { gold: 60, wood: 40 },
+  visionRange: 6,
+  autoAttack: true,
+  attack: 8,
+  range: 3
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.description                                                     -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-description">
+          <h3>s.description()</h3>
+          <div class="signature">s.description(text: string)</div>
+          <div class="description">
+            Sets the scenario's description shown in the lobby and scenario browser. Supports plain text only. Keep it under 200 characters for best display.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>text</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>The scenario description text.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.description("A medieval fantasy scenario with knights, castles, and dragons. Conquer the realm!");</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.event                                                           -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-event">
+          <h3>s.event()</h3>
+          <div class="signature">s.event(name: string, options: object)</div>
+          <div class="description">
+            Defines a random event that can trigger during gameplay. Events have a chance to fire each turn and can modify the game state through an effect callback. The callback receives an event context <code>e</code> with helper methods.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this event.</td></tr>
+              <tr><td>chance</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0.1</span></td><td>Probability (0&ndash;1) that this event triggers each turn.</td></tr>
+              <tr><td>minStep</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Earliest turn number on which this event can trigger.</td></tr>
+              <tr><td>maxPerGame</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">Infinity</span></td><td>Maximum number of times this event can fire in a single game.</td></tr>
+              <tr><td>message</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">""</span></td><td>Text displayed to all players when the event fires.</td></tr>
+              <tr><td>effect</td><td><span class="badge badge-type">function</span></td><td><span class="badge badge-required">required</span></td><td>Callback <code>(e) =&gt; { ... }</code> that modifies game state. See below for <code>e.*</code> methods.</td></tr>
+            </tbody>
+          </table>
+          <h4>Event context methods (<code>e.*</code>)</h4>
+          <table class="param-table">
+            <thead><tr><th>Method</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>e.damageAll(amount)</td><td>Deal damage to every unit on the map.</td></tr>
+              <tr><td>e.healAll(amount)</td><td>Heal every unit on the map.</td></tr>
+              <tr><td>e.giveAll(resource, amount)</td><td>Give resources to every player.</td></tr>
+              <tr><td>e.takeAll(resource, amount)</td><td>Remove resources from every player.</td></tr>
+              <tr><td>e.spawnNeutral(unitName, count)</td><td>Spawn neutral units at random positions.</td></tr>
+              <tr><td>e.applyOverlay(overlayName, count)</td><td>Place overlay tiles at random positions.</td></tr>
+              <tr><td>e.changeBiome(from, to, count)</td><td>Convert random tiles from one biome to another.</td></tr>
+              <tr><td>e.buffAll(stat, amount, duration)</td><td>Temporarily boost a stat for all units.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.event("meteor_shower", {
+  chance: 0.05,
+  minStep: 10,
+  maxPerGame: 3,
+  message: "Meteors rain from the sky!",
+  effect: e =&gt; {
+    e.damageAll(15);
+    e.changeBiome("plains", "lava", 5);
+    e.spawnNeutral("fire_elemental", 2);
+  }
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.mapgen                                                          -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-mapgen">
+          <h3>s.mapgen()</h3>
+          <div class="signature">s.mapgen(callback: function)</div>
+          <div class="description">
+            Configures procedural map generation. The callback receives a generator context <code>g</code> with methods to control biome placement, terrain features, and starting positions.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Method</th><th>Signature</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>g.biome</td><td><span class="badge badge-type">(name, weight)</span></td><td>Override the biome's spawn weight for map generation.</td></tr>
+              <tr><td>g.scatter</td><td><span class="badge badge-type">(biome, density)</span></td><td>Scatter individual tiles of a biome randomly. Density is 0&ndash;1.</td></tr>
+              <tr><td>g.clusters</td><td><span class="badge badge-type">(biome, count, size)</span></td><td>Place clustered groups of a biome. Size is average tiles per cluster.</td></tr>
+              <tr><td>g.rivers</td><td><span class="badge badge-type">(biome, count)</span></td><td>Generate meandering river lines using the given biome.</td></tr>
+              <tr><td>g.clearAroundStart</td><td><span class="badge badge-type">(radius, biome)</span></td><td>Replace tiles around each player's start position with the given biome.</td></tr>
+              <tr><td>g.placeNeutralBuilding</td><td><span class="badge badge-type">(building, count)</span></td><td>Place neutral (unowned) buildings at random valid positions.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.mapgen(g =&gt; {
+  g.biome("plains", 5);
+  g.biome("forest", 3);
+  g.biome("mountain", 2);
+  g.scatter("water", 0.08);
+  g.clusters("forest", 6, 8);
+  g.rivers("water", 2);
+  g.clearAroundStart(3, "plains");
+  g.placeNeutralBuilding("gold_mine", 4);
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.name                                                            -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-name">
+          <h3>s.name()</h3>
+          <div class="signature">s.name(displayName: string)</div>
+          <div class="description">
+            Sets the scenario's display name shown in the lobby, loading screen, and scenario browser. This is the human-readable name (distinct from the scenario ID passed to <code>scenario()</code>).
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>displayName</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>The display name for the scenario.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.name("Castle: Age of Kingdoms");</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.observers                                                       -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-observers">
+          <h3>s.observers()</h3>
+          <div class="signature">s.observers(options: object)</div>
+          <div class="description">
+            Configures observer (spectator) settings for the game. Controls whether observers are allowed, their visibility, and the maximum number.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>allowed</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">true</span></td><td>Whether observers can join the game.</td></tr>
+              <tr><td>fogOfWar</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, observers see fog of war (same as players). If false, observers see the entire map.</td></tr>
+              <tr><td>maxCount</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">10</span></td><td>Maximum number of simultaneous observers.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.observers({
+  allowed: true,
+  fogOfWar: false,
+  maxCount: 5
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.overlay                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-overlay">
+          <h3>s.overlay()</h3>
+          <div class="signature">s.overlay(name: string, options: object)</div>
+          <div class="description">
+            Defines an overlay that can be placed on top of biome tiles. Overlays are semi-transparent effects like fire, poison clouds, or radiation zones that can spread and deal damage.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this overlay.</td></tr>
+              <tr><td>color</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Hex color used to render the overlay, e.g. <code>"#ff440088"</code>.</td></tr>
+              <tr><td>opacity</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0.5</span></td><td>Opacity of the overlay (0&ndash;1).</td></tr>
+              <tr><td>damagePerTurn</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>HP damage dealt to any unit standing on this overlay each turn.</td></tr>
+              <tr><td>spreadChance</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Probability (0&ndash;1) that this overlay spreads to an adjacent tile each turn.</td></tr>
+              <tr><td>duration</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">Infinity</span></td><td>Number of turns before the overlay disappears. <code>Infinity</code> means permanent.</td></tr>
+              <tr><td>effect</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">null</span></td><td>Name of a status effect applied to units on this overlay.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.overlay("wildfire", {
+  color: "#ff4400",
+  opacity: 0.6,
+  damagePerTurn: 8,
+  spreadChance: 0.3,
+  duration: 5,
+  effect: "burning"
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.resource                                                        -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-resource">
+          <h3>s.resource()</h3>
+          <div class="signature">s.resource(name: string, options: object)</div>
+          <div class="description">
+            Defines a resource type that can be harvested, spent, and stored. Resources appear as deposits on the map and are the economic backbone of the game.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this resource.</td></tr>
+              <tr><td>color</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Hex color used to render resource deposits on the map.</td></tr>
+              <tr><td>rarity</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"common"</span></td><td>Controls spawn frequency: <code>"common"</code>, <code>"uncommon"</code>, <code>"rare"</code>, or <code>"legendary"</code>.</td></tr>
+              <tr><td>maxDeposit</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">100</span></td><td>Maximum amount in a single resource deposit.</td></tr>
+              <tr><td>regenRate</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Amount regenerated per turn in each deposit. 0 means non-renewable.</td></tr>
+              <tr><td>harvestAmount</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">10</span></td><td>Amount collected per harvest action by a unit.</td></tr>
+              <tr><td>decayRate</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Amount lost from a player's stockpile each turn (e.g. perishable goods).</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.resource("gold", {
+  color: "#ffd700",
+  rarity: "common",
+  maxDeposit: 200,
+  regenRate: 2,
+  harvestAmount: 15
+});
+
+s.resource("crystal", {
+  color: "#e040fb",
+  rarity: "rare",
+  maxDeposit: 50,
+  harvestAmount: 5
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.resourceCap                                                     -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-resourceCap">
+          <h3>s.resourceCap()</h3>
+          <div class="signature">s.resourceCap(name: string, amount: number)</div>
+          <div class="description">
+            Sets the maximum amount of a resource a player can hold at once (before building storage). Excess resources are lost. Call once per resource.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Name of the resource (must match a defined <code>s.resource</code>).</td></tr>
+              <tr><td>amount</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-required">required</span></td><td>Maximum storage capacity for this resource.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.resourceCap("gold", 500);
+s.resourceCap("wood", 300);
+s.resourceCap("crystal", 100);</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.respawn                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-respawn">
+          <h3>s.respawn()</h3>
+          <div class="signature">s.respawn(options: object)</div>
+          <div class="description">
+            Configures player respawn behavior when a player is eliminated. Controls whether players can come back, with what resources, and after how long.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>allowed</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Whether eliminated players can respawn.</td></tr>
+              <tr><td>delay</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">3</span></td><td>Number of turns before the player respawns.</td></tr>
+              <tr><td>startFresh</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">true</span></td><td>If true, the player restarts with default start conditions. If false, they keep accumulated resources.</td></tr>
+              <tr><td>keepScore</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">true</span></td><td>If true, the player's score is preserved across respawns.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.respawn({
+  allowed: true,
+  delay: 5,
+  startFresh: true,
+  keepScore: false
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.rules                                                           -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-rules">
+          <h3>s.rules()</h3>
+          <div class="signature">s.rules(options: object)</div>
+          <div class="description">
+            Sets global gameplay rule flags. These toggle major game mechanics on or off for the entire scenario.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>friendlyFire</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Allow units to damage friendly units and buildings.</td></tr>
+              <tr><td>fogOfWar</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">true</span></td><td>Enable fog of war. If false, the entire map is visible.</td></tr>
+              <tr><td>dayNightCycle</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable day/night cycle, which affects vision ranges.</td></tr>
+              <tr><td>weather</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable random weather events that affect combat and movement.</td></tr>
+              <tr><td>morale</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable the morale system. Units gain or lose morale based on combat outcomes.</td></tr>
+              <tr><td>experience</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable the XP and leveling system for units.</td></tr>
+              <tr><td>logistics</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable supply lines. Units far from buildings have reduced effectiveness.</td></tr>
+              <tr><td>siegeMode</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable siege mechanics. Some units can enter siege mode for bonus range/damage at the cost of mobility.</td></tr>
+              <tr><td>diplomacy</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>Enable alliances and diplomacy between players.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.rules({
+  fogOfWar: true,
+  dayNightCycle: true,
+  weather: true,
+  morale: true,
+  experience: true,
+  friendlyFire: false,
+  logistics: false,
+  siegeMode: false,
+  diplomacy: false
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.sprites                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-sprites">
+          <h3>s.sprites()</h3>
+          <div class="signature">s.sprites(config: object)</div>
+          <div class="description">
+            Maps game entities to sprite image files. Each key in the config maps an entity type to an object of name-to-file-path pairs. Paths are relative to the scenario's <code>sprites/</code> folder.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>units</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of unit names to sprite paths, e.g. <code>{ warrior: "units/warrior.png" }</code>.</td></tr>
+              <tr><td>buildings</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of building names to sprite paths.</td></tr>
+              <tr><td>biomes</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of biome names to tile sprite paths. Overrides the flat color.</td></tr>
+              <tr><td>resources</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of resource names to deposit sprite paths.</td></tr>
+              <tr><td>effects</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Map of effect/ability names to animation sprite paths.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.sprites({
+  units: {
+    warrior: "sprites/units/warrior.png",
+    archer: "sprites/units/archer.png",
+    mage: "sprites/units/mage.png"
+  },
+  buildings: {
+    barracks: "sprites/buildings/barracks.png",
+    tower: "sprites/buildings/tower.png"
+  },
+  biomes: {
+    forest: "sprites/tiles/forest.png",
+    mountain: "sprites/tiles/mountain.png"
+  },
+  resources: {
+    gold: "sprites/resources/gold.png"
+  },
+  effects: {
+    fireball: "sprites/fx/fireball.png"
+  }
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.startCondition                                                  -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-startCondition">
+          <h3>s.startCondition()</h3>
+          <div class="signature">s.startCondition(callback: function)</div>
+          <div class="description">
+            Defines what each player starts with when the game begins (or when they respawn with <code>startFresh: true</code>). The callback receives a player context <code>p</code> with setup methods.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Method</th><th>Signature</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>p.give</td><td><span class="badge badge-type">(resource, amount)</span></td><td>Give the player starting resources.</td></tr>
+              <tr><td>p.spawnUnit</td><td><span class="badge badge-type">(unitName, count)</span></td><td>Spawn units near the player's starting position.</td></tr>
+              <tr><td>p.buildBuilding</td><td><span class="badge badge-type">(buildingName)</span></td><td>Place a pre-built building at the player's starting position.</td></tr>
+              <tr><td>p.nearPos</td><td><span class="badge badge-type">(dx, dy)</span></td><td>Set a relative offset from the start position for the next spawn/build call.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.startCondition(p =&gt; {
+  p.give("gold", 200);
+  p.give("wood", 100);
+  p.buildBuilding("town_hall");
+  p.spawnUnit("warrior", 2);
+  p.spawnUnit("worker", 3);
+  p.nearPos(2, 0);
+  p.spawnUnit("scout", 1);
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.statusEffect                                                    -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-statusEffect">
+          <h3>s.statusEffect()</h3>
+          <div class="signature">s.statusEffect(name: string, options: object)</div>
+          <div class="description">
+            Defines a status effect (buff or debuff) that can be applied to units by abilities, overlays, or events. Status effects persist for a set duration and modify unit behavior each turn.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this status effect.</td></tr>
+              <tr><td>duration</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">3</span></td><td>Default number of turns the effect lasts.</td></tr>
+              <tr><td>blocksMove</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, the affected unit cannot move.</td></tr>
+              <tr><td>blocksAttack</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, the affected unit cannot attack.</td></tr>
+              <tr><td>damagePerTurn</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>HP damage dealt to the affected unit at the start of each turn.</td></tr>
+              <tr><td>damageType</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"physical"</span></td><td>Type of damage dealt by <code>damagePerTurn</code>.</td></tr>
+              <tr><td>color</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#ffffff"</span></td><td>Color of the visual indicator shown on affected units.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.statusEffect("burning", {
+  duration: 3,
+  damagePerTurn: 5,
+  damageType: "fire",
+  color: "#ff6600"
+});
+
+s.statusEffect("frozen", {
+  duration: 2,
+  blocksMove: true,
+  blocksAttack: true,
+  color: "#00ccff"
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.thumbnail                                                       -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-thumbnail">
+          <h3>s.thumbnail()</h3>
+          <div class="signature">s.thumbnail(filename: string)</div>
+          <div class="description">
+            Sets the scenario's thumbnail image displayed in the lobby and scenario browser. The file should be placed in the scenario's root folder. Recommended size is 400x300 pixels, PNG or JPG format.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>filename</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Path to the thumbnail image, relative to the scenario folder.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.thumbnail("thumbnail.png");</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.uiTheme                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-uiTheme">
+          <h3>s.uiTheme()</h3>
+          <div class="signature">s.uiTheme(options: object)</div>
+          <div class="description">
+            Customizes the in-game UI appearance. Lets each scenario have a unique visual identity through colors, fonts, and fog styling.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>font</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"sans-serif"</span></td><td>CSS font family for the in-game UI.</td></tr>
+              <tr><td>primaryColor</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#1a1a2e"</span></td><td>Main background color for UI panels.</td></tr>
+              <tr><td>secondaryColor</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#16213e"</span></td><td>Secondary background color for nested panels.</td></tr>
+              <tr><td>accentColor</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#e94560"</span></td><td>Accent color for buttons, highlights, and selected items.</td></tr>
+              <tr><td>fogColor</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#000000"</span></td><td>Color of the fog of war overlay.</td></tr>
+              <tr><td>fogOpacity</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0.7</span></td><td>Opacity of the fog of war (0&ndash;1).</td></tr>
+              <tr><td>fogEdge</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"soft"</span></td><td>Fog edge style: <code>"soft"</code> (gradient) or <code>"hard"</code> (sharp cutoff).</td></tr>
+              <tr><td>minimapBg</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#0a0a0a"</span></td><td>Background color of the minimap panel.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.uiTheme({
+  font: "'MedievalSharp', serif",
+  primaryColor: "#1a1a2e",
+  secondaryColor: "#16213e",
+  accentColor: "#c9a227",
+  fogColor: "#1a0a2e",
+  fogOpacity: 0.65,
+  fogEdge: "soft",
+  minimapBg: "#0d0d1a"
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.unit                                                            -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-unit">
+          <h3>s.unit()</h3>
+          <div class="signature">s.unit(name: string, options: object)</div>
+          <div class="description">
+            Defines a unit type that can be trained and controlled by players (or spawned as neutrals). Units are the primary agents on the map &mdash; they move, fight, harvest, and use abilities.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>name</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Unique identifier for this unit type.</td></tr>
+              <tr><td>hp</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">50</span></td><td>Maximum hit points.</td></tr>
+              <tr><td>attack</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">10</span></td><td>Base attack damage per hit.</td></tr>
+              <tr><td>defense</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">5</span></td><td>Flat damage reduction from incoming attacks.</td></tr>
+              <tr><td>range</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Attack range in hexes. 1 = melee, 2+ = ranged.</td></tr>
+              <tr><td>speed</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">3</span></td><td>Movement points per turn. Tiles cost <code>moveCost</code> points to enter.</td></tr>
+              <tr><td>visionRange</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">4</span></td><td>How far the unit can see through fog of war, in hexes.</td></tr>
+              <tr><td>cost</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-required">required</span></td><td>Resource cost to train, e.g. <code>{ gold: 50 }</code>.</td></tr>
+              <tr><td>productionTime</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Number of turns to train this unit at a building.</td></tr>
+              <tr><td>color</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">"#ffffff"</span></td><td>Fallback color when no sprite is assigned.</td></tr>
+              <tr><td>abilities</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">[]</span></td><td>List of ability names this unit can use (must match defined <code>s.ability</code> entries).</td></tr>
+              <tr><td>carryCap</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>Maximum resources this unit can carry. 0 means it cannot harvest.</td></tr>
+              <tr><td>upkeep</td><td><span class="badge badge-type">object</span></td><td><span class="badge badge-default">{}</span></td><td>Resources consumed each turn to maintain this unit, e.g. <code>{ gold: 2 }</code>. Unit is damaged if upkeep cannot be paid.</td></tr>
+              <tr><td>neutral</td><td><span class="badge badge-type">boolean</span></td><td><span class="badge badge-default">false</span></td><td>If true, this unit type is hostile to all players (NPC / creep).</td></tr>
+              <tr><td>spawnGroup</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">1</span></td><td>Number of units spawned together when a neutral spawn occurs.</td></tr>
+              <tr><td>aoeRadius</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">0</span></td><td>If &gt; 0, basic attacks deal splash damage in this radius.</td></tr>
+              <tr><td>immunities</td><td><span class="badge badge-type">string[]</span></td><td><span class="badge badge-default">[]</span></td><td>List of status effect names this unit is immune to.</td></tr>
+              <tr><td>levels</td><td><span class="badge badge-type">object[]</span></td><td><span class="badge badge-default">[]</span></td><td>Per-level stat overrides, e.g. <code>[{ hp: 60, attack: 14 }, { hp: 75, attack: 18 }]</code>. Requires <code>rules.experience = true</code>.</td></tr>
+              <tr><td>expPerKill</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">10</span></td><td>Experience points awarded for killing this unit type.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.unit("knight", {
+  hp: 80,
+  attack: 18,
+  defense: 12,
+  range: 1,
+  speed: 3,
+  visionRange: 4,
+  cost: { gold: 80, iron: 20 },
+  productionTime: 2,
+  color: "#c0c0c0",
+  abilities: ["charge"],
+  carryCap: 0,
+  immunities: ["fear"],
+  levels: [
+    { hp: 100, attack: 22, defense: 14 },
+    { hp: 120, attack: 26, defense: 16 }
+  ],
+  expPerKill: 25
+});
+
+s.unit("worker", {
+  hp: 30,
+  attack: 3,
+  defense: 2,
+  speed: 4,
+  cost: { gold: 20 },
+  carryCap: 20,
+  color: "#8b6914"
+});</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.version                                                         -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-version">
+          <h3>s.version()</h3>
+          <div class="signature">s.version(semver: string)</div>
+          <div class="description">
+            Sets the scenario version string. Follows semver format. The server uses this to detect scenario updates and invalidate caches. Increment on every change.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>semver</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Version string in semver format, e.g. <code>"1.2.0"</code>.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>s.version("1.0.0");</code></pre>
+        </div>
+
+        <!-- ================================================================== -->
+        <!--  s.victoryCondition                                                -->
+        <!-- ================================================================== -->
+        <div class="dsl-entry" id="s-victoryCondition">
+          <h3>s.victoryCondition()</h3>
+          <div class="signature">s.victoryCondition(type: string, options?: object)</div>
+          <div class="description">
+            Sets the win condition for the game. Only one victory condition can be active. The <code>type</code> determines which options are relevant.
+          </div>
+          <table class="param-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td>type</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-required">required</span></td><td>Victory type: <code>"domination"</code>, <code>"score"</code>, <code>"elimination"</code>, <code>"capture"</code>, or <code>"survival"</code>.</td></tr>
+              <tr><td>options.threshold</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">varies</span></td><td>Target value. For <code>"domination"</code>: map control % (e.g. 0.7). For <code>"score"</code>: point target. For <code>"survival"</code>: turns to survive.</td></tr>
+              <tr><td>options.target</td><td><span class="badge badge-type">string</span></td><td><span class="badge badge-default">null</span></td><td>For <code>"capture"</code>: the building name that must be captured to win.</td></tr>
+              <tr><td>options.turnLimit</td><td><span class="badge badge-type">number</span></td><td><span class="badge badge-default">Infinity</span></td><td>Maximum turns before the game ends. Highest score wins if no condition is met.</td></tr>
+            </tbody>
+          </table>
+          <pre><code>// Domination: control 70% of the map
+s.victoryCondition("domination", { threshold: 0.7 });
+
+// Score: reach 1000 points, max 100 turns
+s.victoryCondition("score", { threshold: 1000, turnLimit: 100 });
+
+// Elimination: last player standing
+s.victoryCondition("elimination");
+
+// Capture: seize the enemy's throne
+s.victoryCondition("capture", { target: "throne" });
+
+// Survival: survive 50 turns
+s.victoryCondition("survival", { threshold: 50 });</code></pre>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

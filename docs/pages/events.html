@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Events
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html" class="active">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Events</h1>
+        <p class="lead">Random events add unpredictability and excitement to your scenario. Each turn, the server rolls for every registered event and fires it if the dice land in range.</p>
+
+        <h2 id="how-events-work">How Random Events Work</h2>
+        <p>Every turn (step), the server iterates through all events defined in your scenario. For each event it generates a random number between 0.0 and 1.0. If the roll is less than the event's <code>chance</code> value, and all other constraints are met, the event fires and its <code>effect</code> callback is executed.</p>
+
+        <pre><code>s.event("dragon_attack", {
+  chance: 0.02,
+  minStep: 10,
+  maxPerGame: 3,
+  message: "A wild dragon descends from the mountains!",
+  effect(e) {
+    const cell = e.randomCell({ biome: "mountain" });
+    e.spawnNeutral("dragon", cell);
+    e.broadcast("Beware — a dragon has appeared!");
+  }
+});</code></pre>
+
+        <h2 id="event-parameters">Event Parameters</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>chance</code></td>
+              <td><code>number</code></td>
+              <td>Probability of firing per step, from <code>0.0</code> to <code>1.0</code>. Typical range: <strong>0.005&ndash;0.05</strong>.</td>
+            </tr>
+            <tr>
+              <td><code>minStep</code></td>
+              <td><code>number</code></td>
+              <td>The event will never fire before this turn number. Use this to prevent early-game disruption.</td>
+            </tr>
+            <tr>
+              <td><code>maxPerGame</code></td>
+              <td><code>number</code></td>
+              <td>Maximum total times this event can fire in a single game. Omit for unlimited.</td>
+            </tr>
+            <tr>
+              <td><code>message</code></td>
+              <td><code>string</code></td>
+              <td>Broadcast text sent to all players when the event fires.</td>
+            </tr>
+            <tr>
+              <td><code>effect</code></td>
+              <td><code>function</code></td>
+              <td>Callback that receives an effect object <code>e</code> with methods to modify the game world.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="effect-callback">Effect Callback Object (<code>e</code>)</h2>
+        <p>The <code>effect</code> function receives a single argument — the effect callback object. This object exposes every method you need to modify the game world when an event fires.</p>
+
+        <h3 id="spawning">Spawning</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>e.spawnNeutral(type, cell)</code></td>
+              <td>Spawn a single neutral (unowned) unit of the given type at the specified cell.</td>
+            </tr>
+            <tr>
+              <td><code>e.spawnNeutralGroup(type, count, cell?)</code></td>
+              <td>Spawn multiple neutral units of the same type. If <code>cell</code> is omitted, units are spread across random cells.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 id="cell-selection">Cell Selection</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>e.randomCell({ biome? })</code></td>
+              <td>Return a single random cell. Optionally filter by biome name.</td>
+            </tr>
+            <tr>
+              <td><code>e.randomCells(count, { biome? })</code></td>
+              <td>Return an array of <code>count</code> random cells. Optionally filter by biome.</td>
+            </tr>
+            <tr>
+              <td><code>e.allCells({ biome? })</code></td>
+              <td>Return all cells on the map. Optionally filter by biome.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 id="resources-overlays">Resources &amp; Overlays</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>e.addResource(cell, type, amount)</code></td>
+              <td>Add a resource deposit to a cell (e.g., gold, scrap).</td>
+            </tr>
+            <tr>
+              <td><code>e.addOverlay(cell, overlayName, { duration? })</code></td>
+              <td>Apply a visual/functional overlay to a cell. Optional <code>duration</code> in turns — omit for permanent.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 id="units-status">Units &amp; Status</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>e.allUnits()</code></td>
+              <td>Return an array of every unit currently on the map (all players and neutrals).</td>
+            </tr>
+            <tr>
+              <td><code>e.applyStatus(unit, effectName)</code></td>
+              <td>Apply a named status effect to a unit (e.g., <code>"poisoned"</code>, <code>"irradiated"</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 id="global-communication">Global &amp; Communication</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>e.startGlobalEvent(name, opts)</code></td>
+              <td>Trigger a named global event with custom options (e.g., a map-wide storm with a duration).</td>
+            </tr>
+            <tr>
+              <td><code>e.broadcast(message)</code></td>
+              <td>Send a text message to all players. Use for narrative flavor or warnings.</td>
+            </tr>
+            <tr>
+              <td><code>e.giveAllPlayers(resource, amount)</code></td>
+              <td>Grant every player a specified amount of a resource.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="probability-math">Probability Math</h2>
+        <p>The <code>chance</code> parameter is a simple per-turn probability. Some useful reference points:</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th><code>chance</code></th>
+              <th>Per-turn probability</th>
+              <th>Expected frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>0.005</code></td>
+              <td>0.5%</td>
+              <td>~1 per 200 turns</td>
+            </tr>
+            <tr>
+              <td><code>0.01</code></td>
+              <td>1%</td>
+              <td>~1 per 100 turns</td>
+            </tr>
+            <tr>
+              <td><code>0.02</code></td>
+              <td>2%</td>
+              <td>~1 per 50 turns</td>
+            </tr>
+            <tr>
+              <td><code>0.05</code></td>
+              <td>5%</td>
+              <td>~1 per 20 turns</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-info">
+          <p>A <code>chance</code> of <code>0.02</code> means roughly 2% per turn, so you can expect the event to fire approximately once every 50 turns. Over a 100-turn game, that's about 2 occurrences on average.</p>
+        </div>
+
+        <h2 id="design-tips">Event Design Tips</h2>
+        <ul>
+          <li><strong>Balance disruption vs. fun.</strong> Events should shake up the game without making players feel helpless. Pair destructive events (dragon attacks, plagues) with beneficial ones (gold rushes, holy ground).</li>
+          <li><strong>Use <code>minStep</code> generously.</strong> Early turns are critical for establishing a base. Avoid firing dangerous events before players can defend themselves.</li>
+          <li><strong>Cap with <code>maxPerGame</code>.</strong> Even rare events can stack up in long games. Limit devastating events to 2&ndash;3 occurrences max.</li>
+          <li><strong>Broadcast context.</strong> Always include a descriptive <code>message</code> so players understand what happened and why their map just changed.</li>
+          <li><strong>Mix scales.</strong> Some events should be local (one cell), some regional (a cluster), and some global (affecting all players).</li>
+        </ul>
+
+        <h2 id="castle-examples">Castle: Age of Kingdoms Examples</h2>
+
+        <pre><code>// Dragon Attack — a dragon spawns in the mountains
+s.event("dragon_attack", {
+  chance: 0.02,
+  minStep: 15,
+  maxPerGame: 3,
+  message: "A fearsome dragon emerges from a volcanic peak!",
+  effect(e) {
+    const cell = e.randomCell({ biome: "mountain" });
+    e.spawnNeutral("dragon", cell);
+  }
+});
+
+// Undead Uprising — skeletons rise across the map
+s.event("undead_uprising", {
+  chance: 0.015,
+  minStep: 20,
+  maxPerGame: 2,
+  message: "The dead are rising from their graves!",
+  effect(e) {
+    e.spawnNeutralGroup("skeleton", 6);
+  }
+});
+
+// Gold Rush — bonus gold deposits appear
+s.event("gold_rush", {
+  chance: 0.03,
+  minStep: 5,
+  maxPerGame: 4,
+  message: "Gold veins have been discovered across the land!",
+  effect(e) {
+    const cells = e.randomCells(5, { biome: "mountain" });
+    for (const cell of cells) {
+      e.addResource(cell, "gold", 50);
+    }
+    e.giveAllPlayers("gold", 25);
+  }
+});
+
+// Plague — all units risk being poisoned
+s.event("plague", {
+  chance: 0.01,
+  minStep: 25,
+  maxPerGame: 2,
+  message: "A terrible plague sweeps across the kingdom!",
+  effect(e) {
+    for (const unit of e.allUnits()) {
+      e.applyStatus(unit, "poisoned");
+    }
+  }
+});
+
+// Magical Storm — overlay disrupts a region
+s.event("magical_storm", {
+  chance: 0.025,
+  minStep: 10,
+  maxPerGame: 5,
+  message: "A magical storm crackles across the horizon!",
+  effect(e) {
+    const cells = e.randomCells(8, { biome: "plains" });
+    for (const cell of cells) {
+      e.addOverlay(cell, "storm", { duration: 3 });
+    }
+    e.startGlobalEvent("storm_season", { duration: 3 });
+  }
+});
+
+// Holy Ground — blessed cells boost nearby units
+s.event("holy_ground", {
+  chance: 0.02,
+  minStep: 8,
+  maxPerGame: 3,
+  message: "Sacred light bathes the land — holy ground has appeared!",
+  effect(e) {
+    const cells = e.randomCells(3);
+    for (const cell of cells) {
+      e.addOverlay(cell, "holy_ground");
+    }
+  }
+});
+
+// Tournament — all players receive bonus gold
+s.event("tournament", {
+  chance: 0.03,
+  minStep: 12,
+  maxPerGame: 4,
+  message: "A grand tournament is held! All kingdoms prosper.",
+  effect(e) {
+    e.giveAllPlayers("gold", 75);
+    e.broadcast("The tournament rewards flow into every treasury.");
+  }
+});</code></pre>
+
+        <h2 id="cyberpunk-examples">Cyberpunk: Scorched Network Examples</h2>
+
+        <pre><code>// Radioactive Fallout — toxic overlay on wasteland cells
+s.event("radioactive_fallout", {
+  chance: 0.02,
+  minStep: 10,
+  maxPerGame: 3,
+  message: "Radioactive fallout drifts across the wasteland!",
+  effect(e) {
+    const cells = e.randomCells(10, { biome: "wasteland" });
+    for (const cell of cells) {
+      e.addOverlay(cell, "radiation", { duration: 5 });
+    }
+  }
+});
+
+// Network Virus — all units get a status debuff
+s.event("network_virus", {
+  chance: 0.015,
+  minStep: 20,
+  maxPerGame: 2,
+  message: "A network virus is corrupting combat systems!",
+  effect(e) {
+    for (const unit of e.allUnits()) {
+      e.applyStatus(unit, "glitched");
+    }
+  }
+});
+
+// EMP Pulse — global event disables electronics
+s.event("emp_pulse", {
+  chance: 0.01,
+  minStep: 25,
+  maxPerGame: 2,
+  message: "An electromagnetic pulse disables all electronics!",
+  effect(e) {
+    e.startGlobalEvent("emp_blackout", { duration: 2 });
+    e.broadcast("Systems offline. Rebooting...");
+  }
+});
+
+// Data Cache — bonus scrap deposits in ruins
+s.event("data_cache", {
+  chance: 0.035,
+  minStep: 5,
+  maxPerGame: 5,
+  message: "Hidden data caches have been located in the ruins!",
+  effect(e) {
+    const cells = e.randomCells(4, { biome: "ruins" });
+    for (const cell of cells) {
+      e.addResource(cell, "scrap", 40);
+    }
+    e.giveAllPlayers("scrap", 15);
+  }
+});
+
+// Rogue Uprising — rogue AI units spawn across the map
+s.event("rogue_uprising", {
+  chance: 0.015,
+  minStep: 18,
+  maxPerGame: 3,
+  message: "Rogue AI constructs are emerging from the network!",
+  effect(e) {
+    e.spawnNeutralGroup("rogue_ai", 4);
+  }
+});
+
+// Power Surge — all players gain energy
+s.event("power_surge", {
+  chance: 0.03,
+  minStep: 8,
+  maxPerGame: 4,
+  message: "A power surge floods the grid — energy reserves spike!",
+  effect(e) {
+    e.giveAllPlayers("energy", 50);
+  }
+});
+
+// Meteor Strike — spawns mutants and adds scrap
+s.event("meteor_strike", {
+  chance: 0.01,
+  minStep: 15,
+  maxPerGame: 2,
+  message: "A meteor slams into the wasteland!",
+  effect(e) {
+    const cell = e.randomCell({ biome: "wasteland" });
+    e.addResource(cell, "scrap", 100);
+    e.addOverlay(cell, "crater");
+    e.spawnNeutralGroup("mutant", 3, cell);
+  }
+});</code></pre>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

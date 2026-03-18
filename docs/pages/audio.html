@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Audio
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html" class="active">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Audio</h1>
+        <p class="lead">Add background music and sound effects to make your scenario immersive.</p>
+
+        <h2 id="format">Format</h2>
+        <p>All audio files must be in <strong>OGG Vorbis</strong> format (<code>.ogg</code>). OGG provides the best cross-browser compatibility for web-based game audio. MP3 and WAV are not supported by the engine.</p>
+
+        <div class="callout callout-info">
+          <p>Most audio editors (Audacity, etc.) can export to OGG. Use a bitrate of 128-192 kbps for music and 96 kbps for short sound effects to keep file sizes reasonable.</p>
+        </div>
+
+        <h2 id="background-music">Background Music</h2>
+        <p>Background music is defined as an array of OGG files. The engine plays them <strong>in sequence</strong> and loops back to the first track when the list is exhausted, creating a continuous music cycle:</p>
+        <pre><code>s.audio({
+  music: [
+    "theme_intro.ogg",
+    "theme_battle.ogg",
+    "theme_exploration.ogg"
+  ]
+});</code></pre>
+        <p>The tracks crossfade automatically. A single-track array will loop that track indefinitely.</p>
+
+        <h2 id="sound-effects">Sound Effects</h2>
+        <p>Sound effects are named sounds triggered by in-game events. Each name maps to an OGG file:</p>
+        <pre><code>s.audio({
+  sfx: {
+    attack:   "sfx_attack.ogg",
+    build:    "sfx_build.ogg",
+    death:    "sfx_death.ogg",
+    levelup:  "sfx_levelup.ogg",
+    event:    "sfx_event.ogg",
+    produce:  "sfx_produce.ogg",
+    select:   "sfx_select.ogg"
+  }
+});</code></pre>
+
+        <h2 id="standard-sound-names">Standard Sound Names</h2>
+        <p>The engine recognizes these sound names and triggers them automatically at the appropriate moments:</p>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Triggered When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>attack</code></td><td>A unit performs an attack action.</td></tr>
+            <tr><td><code>build</code></td><td>A building is placed or construction completes.</td></tr>
+            <tr><td><code>death</code></td><td>A unit or building is destroyed.</td></tr>
+            <tr><td><code>levelup</code></td><td>A unit gains a level from experience.</td></tr>
+            <tr><td><code>event</code></td><td>A random event is triggered on the map.</td></tr>
+            <tr><td><code>produce</code></td><td>A building finishes producing a unit.</td></tr>
+            <tr><td><code>select</code></td><td>The player selects a unit or building.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="custom-sounds">Custom Sound Names</h2>
+        <p>You can define any additional sound name as a string key. Custom sounds are triggered via events or abilities using the <code>playSound</code> action:</p>
+        <pre><code>s.audio({
+  sfx: {
+    // Standard sounds
+    attack: "sfx_attack.ogg",
+    death:  "sfx_death.ogg",
+    // Custom sounds
+    dragon_roar:   "sfx_dragon_roar.ogg",
+    spell_cast:    "sfx_spell_cast.ogg",
+    treasure_open: "sfx_treasure.ogg"
+  }
+});
+
+// Trigger a custom sound from an event
+s.event("dragon_appears", {
+  chance: 0.05,
+  effect: { playSound: "dragon_roar" }
+});</code></pre>
+
+        <h2 id="folder-structure">Audio Folder Structure</h2>
+        <p>Place all audio files in an <code>audio/</code> directory inside your scenario folder:</p>
+        <pre><code>my_scenario/audio/
+├── theme_intro.ogg
+├── theme_battle.ogg
+├── theme_exploration.ogg
+├── sfx_attack.ogg
+├── sfx_build.ogg
+├── sfx_death.ogg
+├── sfx_levelup.ogg
+├── sfx_event.ogg
+├── sfx_produce.ogg
+├── sfx_select.ogg
+├── sfx_dragon_roar.ogg
+└── sfx_spell_cast.ogg</code></pre>
+        <p>All file paths in the <code>s.audio()</code> config are relative to this <code>audio/</code> directory.</p>
+
+        <h2 id="volume-and-playback">Volume and Playback</h2>
+        <p>Volume levels and playback controls (mute, pause, master volume) are managed entirely by the <strong>client application</strong>, not by the scenario file. Your scenario only declares <em>which</em> sounds exist and <em>when</em> they should play. The player adjusts volume through in-game settings.</p>
+
+        <div class="callout callout-info">
+          <p>Keep music tracks at a consistent loudness level across your scenario. The client applies a single master volume — it cannot adjust individual tracks independently.</p>
+        </div>
+
+        <h2 id="where-to-get-audio">Where to Get Free Sounds</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">freesound.org</h4>
+            <p class="text-muted">Massive community library of sound effects. Most assets are CC0 or CC-BY. Use the search filters to find game-ready clips.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">kenney.nl</h4>
+            <p class="text-muted">Audio packs alongside the sprite packs — UI sounds, impacts, ambient loops. All CC0 (public domain).</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">opengameart.org</h4>
+            <p class="text-muted">Music tracks and sound effects specifically made for games. Check the license per asset — CC0 and CC-BY are common.</p>
+          </div>
+        </div>
+
+        <h2 id="examples">Examples</h2>
+
+        <h3>Castle: Age of Kingdoms</h3>
+        <p>The Castle scenario uses orchestral music with medieval-themed sound effects:</p>
+        <pre><code>s.audio({
+  music: [
+    "castle_theme.ogg",
+    "castle_battle.ogg",
+    "castle_peace.ogg"
+  ],
+  sfx: {
+    attack:   "sword_clash.ogg",
+    build:    "hammer_build.ogg",
+    death:    "death_cry.ogg",
+    levelup:  "fanfare.ogg",
+    event:    "horn_blast.ogg",
+    produce:  "anvil_produce.ogg",
+    select:   "armor_clink.ogg",
+    dragon_roar: "dragon_roar.ogg"
+  }
+});</code></pre>
+
+        <h3>Cyberpunk: Scorched Network</h3>
+        <p>The Cyberpunk scenario uses electronic music with sci-fi sound effects:</p>
+        <pre><code>s.audio({
+  music: [
+    "cyber_ambient.ogg",
+    "cyber_combat.ogg",
+    "cyber_tension.ogg"
+  ],
+  sfx: {
+    attack:   "laser_shot.ogg",
+    build:    "construct_beep.ogg",
+    death:    "explosion_small.ogg",
+    levelup:  "upgrade_chime.ogg",
+    event:    "alert_siren.ogg",
+    produce:  "assembly_whir.ogg",
+    select:   "ui_click.ogg",
+    hack_complete: "glitch_resolve.ogg",
+    radiation_warning: "geiger_tick.ogg"
+  }
+});</code></pre>
+
+        <div class="callout callout-tip">
+          <p>Audio is entirely optional. Your scenario works perfectly without any sound files — the engine simply plays nothing when no audio is configured.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

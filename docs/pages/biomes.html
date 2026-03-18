@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Biomes
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biomes — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html" class="active">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Biomes</h1>
+        <p class="lead">How biomes shape gameplay &mdash; terrain types control movement, combat, vision, hazards, and resource placement across the map.</p>
+
+        <h2 id="how-biomes-affect-gameplay">How Biomes Affect Gameplay</h2>
+        <p>Every hex on the map belongs to a biome. Biomes are far more than visual paint &mdash; they are the primary lever for shaping strategic decisions. A well-designed biome set forces players to think about <em>where</em> they move, not just <em>what</em> they build.</p>
+
+        <ul>
+          <li><strong>Movement</strong> &mdash; <code>moveCost</code> determines how many movement points a unit spends entering a hex. Higher values slow units down, creating natural chokepoints and safe corridors.</li>
+          <li><strong>Combat bonuses</strong> &mdash; <code>defenseBonus</code> and <code>attackBonus</code> modify a unit's stats while occupying the hex. Forests might grant defense; high ground might grant attack.</li>
+          <li><strong>Vision</strong> &mdash; <code>visionBonus</code> extends a unit's sight range (hilltops, watchtowers), while <code>visionPenalty</code> reduces it (dense jungle, fog).</li>
+          <li><strong>Damage</strong> &mdash; <code>damagePerTurn</code> inflicts automatic damage on any unit that ends its turn on the hex. Use this for lava, toxic waste, radiation zones, and other environmental hazards.</li>
+          <li><strong>Resource placement</strong> &mdash; <code>harvestBonus</code> multiplies the yield when a unit or building harvests resources on that hex. Fertile plains produce more; barren rock produces less.</li>
+          <li><strong>Access control</strong> &mdash; <code>impassable</code> blocks all units entirely, and <code>allowedUnits</code> restricts passage to specific unit types (e.g., only flying units can cross mountains, only ships can cross water).</li>
+        </ul>
+
+        <h2 id="parameter-reference">Full Parameter Reference</h2>
+        <p>Pass these options as the second argument to <code>s.biome()</code>.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>color</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td>&mdash;</td>
+              <td>Hex color used to render the biome on the map. <strong>Required.</strong></td>
+            </tr>
+            <tr>
+              <td><code>moveCost</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>1</code></td>
+              <td>Movement points spent to enter this hex. Higher values slow units down.</td>
+            </tr>
+            <tr>
+              <td><code>defenseBonus</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Flat bonus added to a unit's defense while on this hex.</td>
+            </tr>
+            <tr>
+              <td><code>attackBonus</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Flat bonus added to a unit's attack while on this hex.</td>
+            </tr>
+            <tr>
+              <td><code>harvestBonus</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>1.0</code></td>
+              <td>Multiplier applied to resource harvest yields on this hex.</td>
+            </tr>
+            <tr>
+              <td><code>visionBonus</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Extra vision range granted to units on this hex.</td>
+            </tr>
+            <tr>
+              <td><code>visionPenalty</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>Vision range reduction for units on this hex (subtracted from base vision).</td>
+            </tr>
+            <tr>
+              <td><code>damagePerTurn</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>0</code></td>
+              <td>HP lost by any unit that ends its turn on this hex.</td>
+            </tr>
+            <tr>
+              <td><code>impassable</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><code>false</code></td>
+              <td>If <code>true</code>, no unit can enter this hex (unless overridden by <code>allowedUnits</code>).</td>
+            </tr>
+            <tr>
+              <td><code>allowedUnits</code></td>
+              <td><span class="badge badge-type">array</span></td>
+              <td><code>[]</code></td>
+              <td>List of unit IDs that <em>can</em> enter an otherwise impassable hex. Ignored if <code>impassable</code> is <code>false</code>.</td>
+            </tr>
+            <tr>
+              <td><code>spawnWeight</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><code>1.0</code></td>
+              <td>Relative likelihood that resources and neutral units spawn on this biome.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="balance-tips">Balance Tips</h2>
+
+        <div class="callout callout-tip">
+          <strong>Keep moveCost between 1 and 3.</strong>
+          <p>A <code>moveCost</code> of 1 is open terrain &mdash; fast and easy to cross. A cost of 2 meaningfully slows units. A cost of 3 makes the hex feel like a slog. Going above 3 is rarely fun unless you want near-impassable terrain without fully blocking it.</p>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Defense bonuses of 0&ndash;30 cover most cases.</strong>
+          <p>A bonus of 10 is a gentle nudge ("forests are slightly safer"). A bonus of 20&ndash;30 creates strong defensive positions that players will fight over. Going above 30 can make entrenched units nearly unkillable without siege or abilities.</p>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>Use damagePerTurn sparingly for hazard biomes.</strong>
+          <p>5&ndash;10 damage per turn creates a soft hazard that punishes lingering. 15+ makes the hex genuinely dangerous. Pair with <code>allowedUnits</code> to let specific unit types (dragons, hazmat troopers) ignore the penalty.</p>
+        </div>
+
+        <h2 id="castle-examples">Castle Scenario Examples</h2>
+        <p>The built-in Castle scenario defines five biomes that create a classic fantasy battlefield.</p>
+
+        <h3>Plains</h3>
+        <p>The basic, unmodified biome. Fast movement, no bonuses, no penalties &mdash; the default "neutral ground."</p>
+        <pre><code>s.biome("plains", {
+  color: "#7ec850",
+  moveCost: 1
+});</code></pre>
+
+        <h3>Forest</h3>
+        <p>A defensive biome. Units in forests are harder to kill but move more slowly. Ideal for ambushes and holding positions.</p>
+        <pre><code>s.biome("forest", {
+  color: "#2d6a1e",
+  moveCost: 2,
+  defenseBonus: 20,
+  visionPenalty: 1
+});</code></pre>
+
+        <h3>Mountain</h3>
+        <p>A strategic high-ground biome. Grants vision and attack bonuses but costs heavily to enter. Most units cannot cross; only specific types are allowed.</p>
+        <pre><code>s.biome("mountain", {
+  color: "#8a8a8a",
+  moveCost: 3,
+  defenseBonus: 10,
+  attackBonus: 5,
+  visionBonus: 2,
+  impassable: true,
+  allowedUnits: ["dragon"]
+});</code></pre>
+
+        <h3>Water</h3>
+        <p>Fully impassable. No unit can enter, creating hard boundaries on the map that force flanking and bridge control.</p>
+        <pre><code>s.biome("water", {
+  color: "#2389da",
+  impassable: true
+});</code></pre>
+
+        <h3>Lava</h3>
+        <p>A hazardous biome that damages any unit on it &mdash; except dragons, which are immune. Use lava to guard high-value areas or as a natural moat.</p>
+        <pre><code>s.biome("lava", {
+  color: "#d4440f",
+  moveCost: 2,
+  damagePerTurn: 15,
+  allowedUnits: ["dragon"]
+});</code></pre>
+
+        <div class="callout callout-tip">
+          <strong>Pair hazards with allowedUnits.</strong>
+          <p>Lava that only dragons can survive gives the dragon unit a unique strategic role &mdash; scouting or attacking across terrain that is deadly to everyone else.</p>
+        </div>
+
+        <h2 id="cyberpunk-examples">Cyberpunk Scenario Examples</h2>
+        <p>The Cyberpunk scenario re-skins biome mechanics for a post-apocalyptic urban setting.</p>
+
+        <h3>Wasteland</h3>
+        <p>Open ground with minimal cover. The Cyberpunk equivalent of plains.</p>
+        <pre><code>s.biome("wasteland", {
+  color: "#8c7a5e",
+  moveCost: 1,
+  harvestBonus: 0.5
+});</code></pre>
+
+        <h3>Ruins</h3>
+        <p>Crumbling buildings provide cover and slow movement. A defensive biome similar to forests.</p>
+        <pre><code>s.biome("ruins", {
+  color: "#5a5a6e",
+  moveCost: 2,
+  defenseBonus: 15,
+  visionPenalty: 1
+});</code></pre>
+
+        <h3>Toxic Zone</h3>
+        <p>Irradiated areas that damage units each turn. Only hazmat-equipped units (mutants) can survive here long-term.</p>
+        <pre><code>s.biome("toxic_zone", {
+  color: "#4ade40",
+  moveCost: 2,
+  damagePerTurn: 10,
+  allowedUnits: ["mutant"],
+  spawnWeight: 0.5
+});</code></pre>
+
+        <h3>Data Stream</h3>
+        <p>A network corridor that boosts vision and attack for hacker units. Fast to traverse, but offers no physical defense.</p>
+        <pre><code>s.biome("data_stream", {
+  color: "#00e5ff",
+  moveCost: 1,
+  attackBonus: 10,
+  visionBonus: 2
+});</code></pre>
+
+        <h3>Bunker</h3>
+        <p>Hardened defensive positions. Slow to enter but extremely strong once occupied.</p>
+        <pre><code>s.biome("bunker", {
+  color: "#3d3d4d",
+  moveCost: 3,
+  defenseBonus: 30,
+  attackBonus: 5
+});</code></pre>
+
+        <h2 id="biomes-in-mapgen">Biomes in Map Generation</h2>
+        <p>When configuring <code>s.mapgen()</code>, you assign a <strong>weight</strong> to each biome. The map generator uses these weights to decide how frequently each biome appears. Weights are relative proportions and <strong>must sum to 1.0</strong>.</p>
+
+        <pre><code>s.mapgen({
+  size: 48,
+  biomes: {
+    plains:   { weight: 0.40 },
+    forest:   { weight: 0.25 },
+    mountain: { weight: 0.15 },
+    water:    { weight: 0.10 },
+    lava:     { weight: 0.10 }
+  }
+});</code></pre>
+
+        <div class="callout callout-tip">
+          <strong>Weights must sum to 1.0.</strong>
+          <p>If your weights add up to more or less than 1.0, the map generator will normalize them, but the results may not match your intent. Always double-check the arithmetic.</p>
+        </div>
+
+        <p>A few guidelines for weight distribution:</p>
+        <ul>
+          <li>Give your <strong>primary biome</strong> (the one players move through most) the highest weight &mdash; typically 0.30&ndash;0.50.</li>
+          <li>Keep <strong>hazard and impassable biomes</strong> under 0.15 each. Too many blocking hexes makes the map frustrating.</li>
+          <li>Use <strong>defensive biomes</strong> (forests, ruins, bunkers) at 0.15&ndash;0.25 to create strategic variety without overwhelming the map.</li>
+          <li>Test your distribution at multiple map sizes. Weights that work at <code>size: 32</code> may create too many isolated pockets at <code>size: 64</code>.</li>
+        </ul>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Buildings
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buildings — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html" class="active">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Buildings</h1>
+        <p class="lead">Define structures that produce units, harvest resources, defend territory, and buff nearby allies. Buildings are created with <code>s.building(id, options)</code>.</p>
+
+        <!-- ── PARAMETERS ──────────────────────────────────────────────── -->
+
+        <h2 id="parameters">All Parameters</h2>
+        <p>Every property you can pass in the options object when calling <code>s.building()</code>.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>hp</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">100</span></td>
+              <td>Hit points. When reduced to zero the building is destroyed.</td>
+            </tr>
+            <tr>
+              <td><code>defense</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Flat damage reduction applied to every incoming attack.</td>
+            </tr>
+            <tr>
+              <td><code>size</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>Number of hex tiles the building occupies (1 = single tile).</td>
+            </tr>
+            <tr>
+              <td><code>cost</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">{}</span></td>
+              <td>Resource cost to construct. Keys are resource IDs, values are amounts (e.g. <code>{ gold: 80, wood: 40 }</code>).</td>
+            </tr>
+            <tr>
+              <td><code>produces</code></td>
+              <td><span class="badge badge-type">string[]</span></td>
+              <td><span class="badge badge-default">[]</span></td>
+              <td>Array of unit IDs this building can produce.</td>
+            </tr>
+            <tr>
+              <td><code>visionRange</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">2</span></td>
+              <td>Fog-of-war sight radius in hex tiles.</td>
+            </tr>
+            <tr>
+              <td><code>aura</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>An aura effect object created with <code>s.aura()</code>. Applied to friendly units within <code>auraRadius</code>.</td>
+            </tr>
+            <tr>
+              <td><code>auraRadius</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Radius in tiles for the aura. Only meaningful when <code>aura</code> is set.</td>
+            </tr>
+            <tr>
+              <td><code>auraEffect</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>Optional visual identifier for the aura overlay shown on the map.</td>
+            </tr>
+            <tr>
+              <td><code>storage</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>Resource storage caps added when this building exists. Keys are resource IDs, values are capacity amounts (e.g. <code>{ gold: 500 }</code>).</td>
+            </tr>
+            <tr>
+              <td><code>maxLevel</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>Maximum upgrade level. Set to <code>1</code> for buildings that cannot be upgraded.</td>
+            </tr>
+            <tr>
+              <td><code>levels</code></td>
+              <td><span class="badge badge-type">array</span></td>
+              <td><span class="badge badge-default">[]</span></td>
+              <td>Array of upgrade definitions. Each entry is an object with <code>upgradeCost</code> and stat bonuses (see <a href="#upgrade-system">Upgrade System</a>).</td>
+            </tr>
+            <tr>
+              <td><code>passiveHarvest</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>Resources generated automatically each turn. Keys are resource IDs, values are per-turn amounts.</td>
+            </tr>
+            <tr>
+              <td><code>mustBePlacedOn</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>Biome ID that this building must be placed on. Construction is blocked on any other terrain.</td>
+            </tr>
+            <tr>
+              <td><code>passable</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">true</span></td>
+              <td>Whether any unit can move through the building tile.</td>
+            </tr>
+            <tr>
+              <td><code>ownTeamPassable</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">true</span></td>
+              <td>Whether the owning team's units can move through the tile, even when <code>passable</code> is <code>false</code>.</td>
+            </tr>
+            <tr>
+              <td><code>autoAttack</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">false</span></td>
+              <td>When <code>true</code>, the building automatically attacks the nearest enemy in range each turn.</td>
+            </tr>
+            <tr>
+              <td><code>attack</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Damage dealt per auto-attack. Only used when <code>autoAttack</code> is <code>true</code>.</td>
+            </tr>
+            <tr>
+              <td><code>range</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Attack range in hex tiles. Only used when <code>autoAttack</code> is <code>true</code>.</td>
+            </tr>
+            <tr>
+              <td><code>productionSpeedBonus</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Percentage bonus to unit production speed (e.g. <code>0.25</code> = 25% faster). Stacks additively with other bonuses.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ── BUILDING TYPES ──────────────────────────────────────────── -->
+
+        <h2 id="building-types">Building Types</h2>
+        <p>Buildings fall into four broad categories depending on which parameters you set. A single building can combine multiple roles.</p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">Production</h4>
+            <p class="text-muted">Uses <code>produces</code> to train units. Optionally boosted by <code>productionSpeedBonus</code>.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Defensive</h4>
+            <p class="text-muted">Sets <code>autoAttack: true</code> with <code>attack</code> and <code>range</code> to fire on enemies automatically.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Economic</h4>
+            <p class="text-muted">Uses <code>passiveHarvest</code> to generate resources every turn without player input.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Support</h4>
+            <p class="text-muted">Provides an <code>aura</code> that buffs friendly units within <code>auraRadius</code>.</p>
+          </div>
+        </div>
+
+        <!-- ── UPGRADE SYSTEM ──────────────────────────────────────────── -->
+
+        <h2 id="upgrade-system">Upgrade System</h2>
+        <p>Set <code>maxLevel</code> higher than 1, then provide a <code>levels</code> array. Each entry after the base level defines the cost and stat bonuses for that upgrade tier. The index in the array corresponds to the level (index 0 = level 2 upgrade, index 1 = level 3 upgrade, etc.).</p>
+
+        <pre><code>s.building("castle", {
+  hp: 500,
+  defense: 10,
+  maxLevel: 3,
+  levels: [
+    { upgradeCost: { gold: 200 }, hp: 200, defense: 5 },
+    { upgradeCost: { gold: 500 }, hp: 400, defense: 10, visionRange: 1 }
+  ]
+});</code></pre>
+
+        <p>In this example the castle starts at level 1 with 500 HP and 10 defense. Upgrading to level 2 costs 200 gold and adds 200 HP and 5 defense. Level 3 costs 500 gold and adds another 400 HP, 10 defense, and 1 extra vision range.</p>
+
+        <div class="callout callout-info">
+          <p>Every numeric building stat can appear as a bonus in a <code>levels</code> entry. The bonus value is <strong>added</strong> to the current stat, not replaced.</p>
+        </div>
+
+        <!-- ── PASSIVE HARVEST ─────────────────────────────────────────── -->
+
+        <h2 id="passive-harvest">Passive Harvest</h2>
+        <p>Buildings with <code>passiveHarvest</code> automatically deposit resources into the owning player's stockpile at the start of each turn. No unit interaction is required.</p>
+
+        <pre><code>s.building("mine", {
+  hp: 150,
+  cost: { gold: 50, wood: 30 },
+  passiveHarvest: { gold: 10 },
+  mustBePlacedOn: "mountain"
+});</code></pre>
+
+        <p>The mine generates 10 gold per turn but can only be built on mountain tiles. If the player's storage for gold is full, excess resources are lost.</p>
+
+        <div class="callout callout-tip">
+          <p>Combine <code>passiveHarvest</code> with <code>storage</code> on the same building to increase the player's resource cap alongside the income stream.</p>
+        </div>
+
+        <!-- ── AURAS ───────────────────────────────────────────────────── -->
+
+        <h2 id="auras">Auras</h2>
+        <p>A building aura applies a persistent effect to all friendly units within range. Create the aura effect with <code>s.aura()</code> and assign it to the building's <code>aura</code> property.</p>
+
+        <pre><code>s.building("tavern", {
+  hp: 120,
+  cost: { gold: 80 },
+  aura: s.aura({
+    effect: { morale: 5 }
+  }),
+  auraRadius: 3,
+  auraEffect: "golden_glow"
+});</code></pre>
+
+        <p>Every friendly unit within 3 tiles of the tavern receives +5 morale. The <code>auraEffect</code> string references a visual overlay so players can see the radius on the map.</p>
+
+        <div class="callout callout-info">
+          <p>Aura bonuses are recomputed each turn. A unit that moves out of range immediately loses the bonus. See <a href="abilities.html#auras">Abilities &mdash; Auras</a> for the full <code>s.aura()</code> API.</p>
+        </div>
+
+        <!-- ── AUTOATTACK TOWERS ───────────────────────────────────────── -->
+
+        <h2 id="autoattack-towers">AutoAttack Towers</h2>
+        <p>Defensive buildings fire automatically at the nearest enemy within range at the start of each combat phase. Set <code>autoAttack: true</code> and provide <code>attack</code> and <code>range</code>.</p>
+
+        <pre><code>s.building("tower", {
+  hp: 200,
+  defense: 5,
+  cost: { gold: 100, stone: 60 },
+  autoAttack: true,
+  attack: 25,
+  range: 3,
+  maxLevel: 3,
+  levels: [
+    { upgradeCost: { gold: 80 },  attack: 10, range: 1 },
+    { upgradeCost: { gold: 160 }, attack: 15, hp: 100 }
+  ]
+});</code></pre>
+
+        <p>This tower starts with 25 attack and 3 range. At level 2 it gains +10 attack and +1 range. At level 3 it gains +15 attack and +100 HP.</p>
+
+        <div class="callout callout-warning">
+          <p>AutoAttack buildings always target the nearest enemy. There is no way to manually choose a target. If you need player-controlled targeting, use a unit with an ability instead.</p>
+        </div>
+
+        <!-- ── PLACEMENT RESTRICTIONS ──────────────────────────────────── -->
+
+        <h2 id="placement-restrictions">Placement Restrictions</h2>
+        <p>Use <code>mustBePlacedOn</code> to restrict a building to a specific biome. The value is a biome ID defined with <code>s.biome()</code>. If the player tries to place the building on any other terrain, construction is blocked.</p>
+
+        <pre><code>s.building("mine", {
+  hp: 150,
+  cost: { gold: 50 },
+  passiveHarvest: { gold: 10 },
+  mustBePlacedOn: "mountain"
+});
+
+s.building("farm", {
+  hp: 80,
+  cost: { gold: 30 },
+  passiveHarvest: { food: 5 },
+  mustBePlacedOn: "plains"
+});</code></pre>
+
+        <div class="callout callout-tip">
+          <p>Placement restrictions add strategic depth by forcing players to compete over specific terrain types. See <a href="biomes.html">Biomes</a> for how to configure terrain distribution.</p>
+        </div>
+
+        <!-- ── PASSABILITY ─────────────────────────────────────────────── -->
+
+        <h2 id="passability">Passability</h2>
+        <p>By default, all buildings are passable &mdash; units can walk through their tile. Two flags control movement:</p>
+
+        <ul>
+          <li><code>passable: false</code> &mdash; No unit from any team can move through this tile.</li>
+          <li><code>ownTeamPassable: true</code> &mdash; Even when <code>passable</code> is false, the owning team's units can still pass through.</li>
+        </ul>
+
+        <pre><code>s.building("wall", {
+  hp: 400,
+  defense: 20,
+  cost: { stone: 40 },
+  passable: false,
+  ownTeamPassable: false
+});</code></pre>
+
+        <p>Walls block all movement including the owner's units. This is useful for creating defensive chokepoints.</p>
+
+        <!-- ── STORAGE ─────────────────────────────────────────────────── -->
+
+        <h2 id="storage">Storage</h2>
+        <p>The <code>storage</code> property increases the player's maximum resource capacity while the building stands. If the building is destroyed, the cap decreases and any excess resources are lost.</p>
+
+        <pre><code>s.building("warehouse", {
+  hp: 120,
+  cost: { gold: 60, wood: 40 },
+  storage: { gold: 500, wood: 300, food: 200 }
+});</code></pre>
+
+        <!-- ── CASTLE EXAMPLES ─────────────────────────────────────────── -->
+
+        <h2 id="castle-examples">Castle Scenario Examples</h2>
+        <p>The official Castle scenario demonstrates all major building archetypes.</p>
+
+        <h3 id="castle-main">Castle (Main Building)</h3>
+        <p>The player's headquarters. Three upgrade levels that increase HP, defense, and vision range.</p>
+        <pre><code>s.building("castle", {
+  hp: 500,
+  defense: 10,
+  size: 2,
+  visionRange: 4,
+  produces: ["peasant"],
+  storage: { gold: 1000, wood: 500, stone: 500, food: 300 },
+  maxLevel: 3,
+  levels: [
+    { upgradeCost: { gold: 300, stone: 200 }, hp: 200, defense: 5, visionRange: 1 },
+    { upgradeCost: { gold: 600, stone: 400 }, hp: 300, defense: 10, visionRange: 1 }
+  ]
+});</code></pre>
+
+        <h3 id="castle-barracks">Barracks (Production Speed)</h3>
+        <p>Trains military units. The <code>productionSpeedBonus</code> makes units ready faster.</p>
+        <pre><code>s.building("barracks", {
+  hp: 250,
+  defense: 5,
+  cost: { gold: 80, wood: 60 },
+  produces: ["soldier", "archer", "knight"],
+  productionSpeedBonus: 0.25
+});</code></pre>
+
+        <h3 id="castle-tower">Tower (AutoAttack, 3 Levels)</h3>
+        <pre><code>s.building("tower", {
+  hp: 200,
+  defense: 5,
+  cost: { gold: 100, stone: 60 },
+  autoAttack: true,
+  attack: 25,
+  range: 3,
+  maxLevel: 3,
+  levels: [
+    { upgradeCost: { gold: 80, stone: 40 },  attack: 10, range: 1 },
+    { upgradeCost: { gold: 160, stone: 80 }, attack: 15, hp: 100 }
+  ]
+});</code></pre>
+
+        <h3 id="castle-tavern">Tavern (Morale Aura)</h3>
+        <pre><code>s.building("tavern", {
+  hp: 120,
+  cost: { gold: 80, wood: 40 },
+  aura: s.aura({
+    effect: { morale: 5, attack: 2 }
+  }),
+  auraRadius: 3,
+  auraEffect: "golden_glow"
+});</code></pre>
+
+        <h3 id="castle-mine">Mine (Mountain Only, Gold)</h3>
+        <pre><code>s.building("mine", {
+  hp: 150,
+  cost: { gold: 50, wood: 30 },
+  passiveHarvest: { gold: 10 },
+  mustBePlacedOn: "mountain",
+  storage: { gold: 200 }
+});</code></pre>
+
+        <h3 id="castle-academy">Academy (Mage Production, EXP Aura)</h3>
+        <pre><code>s.building("academy", {
+  hp: 180,
+  defense: 3,
+  cost: { gold: 150, stone: 80 },
+  produces: ["mage"],
+  aura: s.aura({
+    effect: { expGain: 0.5 }
+  }),
+  auraRadius: 2
+});</code></pre>
+
+        <h3 id="castle-wall">Wall (Impassable Defense)</h3>
+        <pre><code>s.building("wall", {
+  hp: 400,
+  defense: 20,
+  cost: { stone: 40 },
+  passable: false,
+  ownTeamPassable: false
+});</code></pre>
+
+        <h3 id="castle-farm">Farm (Plains, Food)</h3>
+        <pre><code>s.building("farm", {
+  hp: 80,
+  cost: { gold: 30, wood: 20 },
+  passiveHarvest: { food: 5 },
+  mustBePlacedOn: "plains",
+  storage: { food: 100 }
+});</code></pre>
+
+        <!-- ── CYBERPUNK EXAMPLES ──────────────────────────────────────── -->
+
+        <h2 id="cyberpunk-examples">Cyberpunk Scenario Examples</h2>
+        <p>The Cyberpunk scenario uses buildings with futuristic themes and different resource types.</p>
+
+        <h3 id="cyber-command">Command Center</h3>
+        <p>The faction HQ. Produces basic drones and stores all three resource types.</p>
+        <pre><code>s.building("command_center", {
+  hp: 600,
+  defense: 15,
+  size: 2,
+  visionRange: 5,
+  produces: ["drone"],
+  storage: { credits: 2000, energy: 500, data: 500 },
+  maxLevel: 3,
+  levels: [
+    { upgradeCost: { credits: 500, data: 200 }, hp: 200, defense: 5, visionRange: 1 },
+    { upgradeCost: { credits: 1000, data: 500 }, hp: 300, defense: 10, visionRange: 2 }
+  ]
+});</code></pre>
+
+        <h3 id="cyber-factory">Factory</h3>
+        <p>Produces combat units with a production speed bonus.</p>
+        <pre><code>s.building("factory", {
+  hp: 300,
+  defense: 8,
+  cost: { credits: 200, energy: 100 },
+  produces: ["mech", "cyborg", "hacker"],
+  productionSpeedBonus: 0.3
+});</code></pre>
+
+        <h3 id="cyber-generator">Generator</h3>
+        <p>Passive energy production each turn.</p>
+        <pre><code>s.building("generator", {
+  hp: 150,
+  cost: { credits: 120 },
+  passiveHarvest: { energy: 15 },
+  storage: { energy: 300 }
+});</code></pre>
+
+        <h3 id="cyber-server">Server Tower</h3>
+        <p>Passive data generation with an EXP aura for nearby units.</p>
+        <pre><code>s.building("server_tower", {
+  hp: 120,
+  defense: 3,
+  cost: { credits: 180, energy: 80 },
+  passiveHarvest: { data: 8 },
+  aura: s.aura({
+    effect: { expGain: 0.3 }
+  }),
+  auraRadius: 3
+});</code></pre>
+
+        <h3 id="cyber-shield">Shield Dome</h3>
+        <p>Defensive aura that increases nearby units' defense.</p>
+        <pre><code>s.building("shield_dome", {
+  hp: 200,
+  defense: 10,
+  cost: { credits: 250, energy: 150 },
+  aura: s.aura({
+    effect: { defense: 8 }
+  }),
+  auraRadius: 4,
+  auraEffect: "blue_shield"
+});</code></pre>
+
+        <h3 id="cyber-radar">Radar</h3>
+        <p>Long-range vision building with an aura that increases unit sight.</p>
+        <pre><code>s.building("radar", {
+  hp: 100,
+  cost: { credits: 140, data: 60 },
+  visionRange: 8,
+  aura: s.aura({
+    effect: { visionRange: 2 }
+  }),
+  auraRadius: 3
+});</code></pre>
+
+        <h3 id="cyber-recycler">Recycler</h3>
+        <p>Converts wreckage into credits. Harvests passively and adds storage.</p>
+        <pre><code>s.building("recycler", {
+  hp: 130,
+  cost: { credits: 100, energy: 50 },
+  passiveHarvest: { credits: 12 },
+  storage: { credits: 400 }
+});</code></pre>
+
+        <!-- ── NEXT STEPS ──────────────────────────────────────────────── -->
+
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">Abilities</h4>
+            <p class="text-muted">Add active skills, auras, status effects, and overlays to units and buildings.</p>
+            <p><a href="abilities.html">Read about abilities &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Units</h4>
+            <p class="text-muted">Design the units your buildings produce.</p>
+            <p><a href="units.html">Design units &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Biomes</h4>
+            <p class="text-muted">Configure terrain for placement restrictions and strategic depth.</p>
+            <p><a href="biomes.html">Explore biomes &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Examples</h4>
+            <p class="text-muted">Full annotated walkthroughs of Castle and Cyberpunk scenarios.</p>
+            <p><a href="examples.html">See examples &rarr;</a></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>
