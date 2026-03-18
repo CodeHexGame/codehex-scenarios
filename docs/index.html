@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Home Page
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeHex Scenarios — Documentation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="pages/quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="pages/dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="pages/biomes.html">Biomes</a>
+        <a href="pages/units.html">Units</a>
+        <a href="pages/buildings.html">Buildings</a>
+        <a href="pages/abilities.html">Abilities</a>
+        <a href="pages/events.html">Events</a>
+        <a href="pages/mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="pages/sprites.html">Sprites</a>
+        <a href="pages/audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="pages/examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>CodeHex Scenarios</h1>
+        <p class="lead">Create custom game content for CodeHex using a simple declarative DSL. No server-side code — just describe your world.</p>
+
+        <h2 id="what">What is a Scenario?</h2>
+        <p>A <strong>scenario</strong> is a single <code>scenario.js</code> file that declares all game content: biomes, resources, units, buildings, abilities, events, map generation, graphics, and audio. The server loads it into a sandboxed environment — no <code>require</code>, no <code>fs</code>, no <code>process</code>.</p>
+
+        <pre><code>scenario("my_scenario", s =&gt; {
+  s.name("My Scenario");
+  s.biome("plains", { color: "#8db360", moveCost: 1 });
+  s.resource("gold", { color: "#ffd700", rarity: "common" });
+  s.unit("warrior", { hp: 60, attack: 12, defense: 8, cost: { gold: 30 }, color: "#f44336" });
+  // ... more declarations
+});</code></pre>
+
+        <h2 id="quickstart">Get Started in 3 Steps</h2>
+        <div class="steps">
+          <div class="step">
+            <h3 class="mt-0">Copy the template</h3>
+            <pre><code>cp -r template/ my_scenario/</code></pre>
+            <p>The template includes every DSL function with full comments and example values. It runs as-is.</p>
+          </div>
+          <div class="step">
+            <h3 class="mt-0">Customize your scenario</h3>
+            <p>Open <code>my_scenario/scenario.js</code> and change the biomes, units, buildings — everything. See the <a href="pages/dsl-reference.html">DSL Reference</a> for all available functions.</p>
+          </div>
+          <div class="step">
+            <h3 class="mt-0">Deploy to server</h3>
+            <pre><code>cp -r my_scenario/ codehex-server/scenarios/my_scenario/</code></pre>
+            <p>Set <code>"scenario": "my_scenario"</code> in <code>config.json</code> and start the server.</p>
+          </div>
+        </div>
+
+        <p>For a more detailed walkthrough, see the <a href="pages/quickstart.html">Quick Start</a> guide.</p>
+
+        <h2 id="scenarios">Official Scenarios</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="mt-0">Castle: Age of Kingdoms</h3>
+            <p class="text-muted">Medieval fantasy with knights, archers, mages, and dragons. Features morale, experience, day/night cycles, and weather.</p>
+            <p><strong>Victory:</strong> Domination (70% map control)</p>
+            <p><strong>Biomes:</strong> plains, forest, mountain, water, lava</p>
+            <p><strong>Units:</strong> knight, archer, mage, catapult, dragon, skeleton</p>
+          </div>
+          <div class="card">
+            <h3 class="mt-0">Cyberpunk: Scorched Network</h3>
+            <p class="text-muted">Post-apocalyptic sci-fi with drones, combat robots, hackers, and rogue AI. Features logistics mode, siege warfare, and radiation.</p>
+            <p><strong>Victory:</strong> Score (1000 points)</p>
+            <p><strong>Biomes:</strong> wasteland, ruins, toxic_zone, data_stream, bunker</p>
+            <p><strong>Units:</strong> drone, combat_robot, hacker, colossus, rogue_ai, mutant</p>
+          </div>
+        </div>
+        <p>See the <a href="pages/examples.html">Examples</a> page for full annotated walkthroughs of both scenarios.</p>
+
+        <h2 id="structure">Repository Structure</h2>
+        <pre><code>codehex-scenarios/
+├── template/
+│   └── scenario.js         ← Fully commented template
+├── castle/
+│   ├── scenario.js         ← Medieval fantasy
+│   ├── sprites/            ← PNG sprite sheets
+│   └── audio/              ← OGG music &amp; SFX
+├── cyberpunk/
+│   ├── scenario.js         ← Post-apocalyptic cyberpunk
+│   ├── sprites/
+│   └── audio/
+└── docs/                   ← This documentation site</code></pre>
+
+        <h2 id="docs">Documentation Sections</h2>
+        <div class="grid-3">
+          <div class="card">
+            <h4 class="mt-0">Quick Start</h4>
+            <p class="text-muted mb-0">Get running in 5 minutes.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">DSL Reference</h4>
+            <p class="text-muted mb-0">Every function, every parameter.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Biomes</h4>
+            <p class="text-muted mb-0">Terrain types and balance.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Units</h4>
+            <p class="text-muted mb-0">Combat, levels, and abilities.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Buildings</h4>
+            <p class="text-muted mb-0">Production, upgrades, auras.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Abilities</h4>
+            <p class="text-muted mb-0">Special attacks and heals.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Events</h4>
+            <p class="text-muted mb-0">Random events and triggers.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Map Generation</h4>
+            <p class="text-muted mb-0">Biome weights and clusters.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Sprites &amp; Audio</h4>
+            <p class="text-muted mb-0">Adding graphics and sound.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

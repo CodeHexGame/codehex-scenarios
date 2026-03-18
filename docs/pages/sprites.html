@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Sprites
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprites — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html" class="active">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Sprites</h1>
+        <p class="lead">Add visual life to your scenario with sprite sheets for units, buildings, biomes, resources, and effects.</p>
+
+        <h2 id="what-is-a-sprite-sheet">What Is a Sprite Sheet?</h2>
+        <p>A sprite sheet is a single <strong>PNG image</strong> that packs multiple frames into a grid. Each <strong>row</strong> represents a different animation (idle, move, attack, etc.) and each <strong>column</strong> represents a single frame within that animation. The engine slices the image at runtime using the frame dimensions you provide.</p>
+
+        <h2 id="format">Format</h2>
+        <p>All sprite files must be <strong>PNG</strong> with a <strong>transparent background</strong>. The engine does not support JPEG, GIF, or WebP for sprite sheets. Transparency is required so sprites composite cleanly over the hex grid and other layers.</p>
+
+        <h2 id="how-animations-work">How Animations Work</h2>
+        <p>Animations are configured with five properties:</p>
+        <table>
+          <thead>
+            <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>frameW</code></td><td>number</td><td>Width of a single frame in pixels. Defines the column grid.</td></tr>
+            <tr><td><code>frameH</code></td><td>number</td><td>Height of a single frame in pixels. Defines the row grid.</td></tr>
+            <tr><td><code>row</code></td><td>number</td><td>Which row of the sprite sheet to use for this animation (0-indexed).</td></tr>
+            <tr><td><code>frames</code></td><td>number</td><td>Number of columns (frames) in the animation.</td></tr>
+            <tr><td><code>fps</code></td><td>number</td><td>Playback speed in frames per second.</td></tr>
+            <tr><td><code>loop</code></td><td>boolean</td><td>Whether the animation repeats. Set to <code>false</code> for one-shot animations like death.</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="unit-sprites">Unit Sprites</h2>
+        <p>Units support multiple animation types. Each animation is a named key inside the unit's <code>sprite</code> block:</p>
+        <table>
+          <thead>
+            <tr><th>Animation</th><th>When Played</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>idle</code></td><td>Unit is standing still, waiting for orders.</td></tr>
+            <tr><td><code>move</code></td><td>Unit is traveling between hexes.</td></tr>
+            <tr><td><code>attack</code></td><td>Unit performs a melee or ranged attack.</td></tr>
+            <tr><td><code>die</code></td><td>Unit is destroyed (typically <code>loop: false</code>).</td></tr>
+            <tr><td><em>custom</em></td><td>Any additional name you define, triggered via abilities or events.</td></tr>
+          </tbody>
+        </table>
+
+        <pre><code>s.unit("knight", {
+  hp: 80, attack: 18, defense: 12,
+  cost: { gold: 40 },
+  sprite: {
+    file: "knight.png",
+    frameW: 64,
+    frameH: 64,
+    animations: {
+      idle:   { row: 0, frames: 4, fps: 4, loop: true },
+      move:   { row: 1, frames: 6, fps: 10, loop: true },
+      attack: { row: 2, frames: 6, fps: 12, loop: false },
+      die:    { row: 3, frames: 4, fps: 8, loop: false }
+    }
+  }
+});</code></pre>
+
+        <h2 id="building-sprites">Building Sprites</h2>
+        <p>Buildings can be <strong>static</strong> or <strong>animated</strong>.</p>
+
+        <h3>Static buildings</h3>
+        <p>A static building uses a single image file with optional damage state variants:</p>
+        <pre><code>s.building("castle", {
+  hp: 500,
+  sprite: {
+    file: "castle.png",
+    scale: 1.2,
+    damaged: "castle_damaged.png",
+    ruined: "castle_ruined.png"
+  }
+});</code></pre>
+
+        <h3>Building damage states</h3>
+        <table>
+          <thead>
+            <tr><th>State</th><th>Property</th><th>Condition</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Normal</td><td><code>file</code></td><td>HP &gt; 50%</td></tr>
+            <tr><td>Damaged</td><td><code>damaged</code></td><td>HP &lt; 50%</td></tr>
+            <tr><td>Ruined</td><td><code>ruined</code></td><td>HP &lt; 20%</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+          <p>If you omit <code>damaged</code> and <code>ruined</code>, the engine will tint the normal sprite darker as health decreases.</p>
+        </div>
+
+        <h3>Animated buildings</h3>
+        <p>Animated buildings use the same <code>frameW</code>, <code>frameH</code>, <code>frames</code>, <code>fps</code>, and <code>loop</code> properties as units, but typically only have a single animation row.</p>
+
+        <h2 id="biome-tiles">Biome Tiles</h2>
+        <p>Biome sprites fill the hex grid. They can be <strong>static</strong> (a single image tile) or <strong>animated</strong> (for water ripples, lava glow, etc.):</p>
+        <pre><code>s.biome("water", {
+  color: "#2196f3",
+  moveCost: 3,
+  sprite: {
+    file: "water.png",
+    frameW: 64,
+    frameH: 64,
+    frames: 8,
+    fps: 4,
+    loop: true
+  }
+});</code></pre>
+
+        <h2 id="resource-sprites">Resource Sprites</h2>
+        <p>Resources use two separate images:</p>
+        <ul>
+          <li><strong><code>icon</code></strong> — shown in the UI resource panel (small, typically 32x32).</li>
+          <li><strong><code>sprite</code></strong> — shown on the map tile where the resource deposit sits.</li>
+        </ul>
+        <pre><code>s.resource("gold", {
+  color: "#ffd700",
+  rarity: "common",
+  icon: "gold_icon.png",
+  sprite: "gold_tile.png"
+});</code></pre>
+
+        <h2 id="effect-sprites">Effect Sprites</h2>
+        <p>Visual effects (explosions, healing bursts, spell impacts) are animated sprites triggered by abilities or events:</p>
+        <pre><code>s.effect("fireball_impact", {
+  file: "fireball_impact.png",
+  frameW: 128,
+  frameH: 128,
+  frames: 8,
+  fps: 16,
+  loop: false
+});</code></pre>
+
+        <h2 id="fallback-rendering">Fallback Rendering</h2>
+        <p>If no sprite is defined for a unit, building, biome, or resource, the engine falls back to <strong>colored hexagons</strong>. The color is taken from the <code>color</code> field in each definition. This means every scenario works visually even without any sprite assets — you can always add graphics later.</p>
+
+        <div class="callout callout-info">
+          <p>The <code>color</code> field is always required, even when sprites are provided. It is used for the minimap, selection highlights, and accessibility modes.</p>
+        </div>
+
+        <h2 id="scale">Scale Parameter</h2>
+        <p>The <code>scale</code> property controls how large the sprite renders relative to the hex cell. The default is <code>1.0</code>, which fits the sprite exactly within the hex. Use values greater than 1.0 for sprites that should overflow (e.g., large buildings or boss units), or less than 1.0 for smaller elements.</p>
+        <pre><code>sprite: {
+  file: "dragon.png",
+  scale: 1.5,    // 50% larger than a standard hex
+  // ...
+}</code></pre>
+
+        <h2 id="folder-structure">Sprite Folder Structure</h2>
+        <p>Place all sprite files in a <code>sprites/</code> directory inside your scenario folder:</p>
+        <pre><code>my_scenario/sprites/
+├── knight.png
+├── archer.png
+├── castle.png
+├── castle_damaged.png
+├── plains.png
+└── gold_icon.png</code></pre>
+        <p>All <code>file</code> paths in the DSL are relative to this <code>sprites/</code> directory. You do not need to include the directory prefix in your definitions.</p>
+
+        <h2 id="full-example">Full Example</h2>
+        <p>Here is a complete <code>s.sprites()</code> configuration from the Castle scenario:</p>
+        <pre><code>s.sprites({
+  units: {
+    knight: {
+      file: "knight.png",
+      frameW: 64, frameH: 64,
+      animations: {
+        idle:   { row: 0, frames: 4, fps: 4, loop: true },
+        move:   { row: 1, frames: 6, fps: 10, loop: true },
+        attack: { row: 2, frames: 6, fps: 12, loop: false },
+        die:    { row: 3, frames: 4, fps: 8, loop: false }
+      }
+    },
+    archer: {
+      file: "archer.png",
+      frameW: 64, frameH: 64,
+      animations: {
+        idle:   { row: 0, frames: 4, fps: 4, loop: true },
+        move:   { row: 1, frames: 6, fps: 10, loop: true },
+        attack: { row: 2, frames: 8, fps: 14, loop: false },
+        die:    { row: 3, frames: 4, fps: 8, loop: false }
+      }
+    },
+    dragon: {
+      file: "dragon.png",
+      frameW: 128, frameH: 128,
+      scale: 1.5,
+      animations: {
+        idle:   { row: 0, frames: 6, fps: 6, loop: true },
+        move:   { row: 1, frames: 8, fps: 10, loop: true },
+        attack: { row: 2, frames: 10, fps: 14, loop: false },
+        die:    { row: 3, frames: 6, fps: 8, loop: false }
+      }
+    }
+  },
+  buildings: {
+    castle:   { file: "castle.png", scale: 1.2,
+                damaged: "castle_damaged.png",
+                ruined: "castle_ruined.png" },
+    barracks: { file: "barracks.png" },
+    tower:    { file: "tower.png" }
+  },
+  biomes: {
+    plains: { file: "plains.png" },
+    forest: { file: "forest.png" },
+    water:  { file: "water.png", frameW: 64, frameH: 64,
+              frames: 8, fps: 4, loop: true },
+    lava:   { file: "lava.png", frameW: 64, frameH: 64,
+              frames: 6, fps: 3, loop: true }
+  },
+  resources: {
+    gold:  { icon: "gold_icon.png",  sprite: "gold_tile.png" },
+    wood:  { icon: "wood_icon.png",  sprite: "wood_tile.png" },
+    stone: { icon: "stone_icon.png", sprite: "stone_tile.png" }
+  },
+  effects: {
+    fireball_impact: { file: "fireball_impact.png",
+                       frameW: 128, frameH: 128,
+                       frames: 8, fps: 16, loop: false },
+    heal_burst:      { file: "heal_burst.png",
+                       frameW: 64, frameH: 64,
+                       frames: 6, fps: 12, loop: false }
+  }
+});</code></pre>
+
+        <h2 id="where-to-get-sprites">Where to Get Free Sprites</h2>
+        <p>You do not need to be an artist. These sites offer high-quality free assets:</p>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">kenney.nl</h4>
+            <p class="text-muted">Professional-quality asset packs, all CC0 (public domain). Hex tiles, characters, UI elements, and more.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">opengameart.org</h4>
+            <p class="text-muted">Large community library. Look for CC0 or CC-BY licensed sprite sheets. Always check the license per asset.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">itch.io/game-assets</h4>
+            <p class="text-muted">Many creators publish free asset packs. Filter by "free" and check the license before using.</p>
+          </div>
+        </div>
+
+        <h2 id="ai-sprite-generation">AI Sprite Generation</h2>
+        <p>If you need custom sprites and cannot draw them yourself, AI tools can help:</p>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">PixelLab.ai</h4>
+            <p class="text-muted">Best option for pixel art and sprite sheet animations. Generates consistent multi-frame sheets from text prompts.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Ludo.ai</h4>
+            <p class="text-muted">Text-to-sprite-to-spritesheet pipeline. Good for rapid prototyping of unit and building art.</p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">PixelBox</h4>
+            <p class="text-muted">Free, no registration required. Simple pixel art generator for quick placeholder sprites.</p>
+          </div>
+        </div>
+
+        <div class="callout callout-tip">
+          <p>Start with colored hexagons (no sprites at all) to get your gameplay right, then add visuals once you are happy with the balance. Art is optional — the DSL works perfectly without it.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

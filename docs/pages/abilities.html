@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Abilities
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abilities — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html" class="active">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Abilities</h1>
+        <p class="lead">Give units active skills that deal damage, heal allies, apply status effects, and more. Abilities are defined with <code>s.ability(id, options)</code> and assigned to units via their <code>abilities</code> array.</p>
+
+        <!-- ── PARAMETERS ──────────────────────────────────────────────── -->
+
+        <h2 id="parameters">All Parameters</h2>
+        <p>Every property you can pass in the options object when calling <code>s.ability()</code>.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>cooldown</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>Turns the unit must wait between uses of this ability.</td>
+            </tr>
+            <tr>
+              <td><code>range</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>Maximum distance in hex tiles to the target.</td>
+            </tr>
+            <tr>
+              <td><code>damage</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Base damage dealt to the target.</td>
+            </tr>
+            <tr>
+              <td><code>damageMulti</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1.0</span></td>
+              <td>Multiplier applied to the base damage (e.g. <code>1.5</code> = 150% damage).</td>
+            </tr>
+            <tr>
+              <td><code>aoeRadius</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Area-of-effect radius. When greater than 0, the ability hits all valid targets within this radius of the target tile.</td>
+            </tr>
+            <tr>
+              <td><code>cost</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">{}</span></td>
+              <td>Resource cost to use the ability. Keys are resource IDs, values are amounts.</td>
+            </tr>
+            <tr>
+              <td><code>damageType</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">"physical"</span></td>
+              <td>The type of damage dealt. Interacts with unit resistances. See <a href="#damage-types">Damage Types</a>.</td>
+            </tr>
+            <tr>
+              <td><code>effect</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>A status effect to apply on hit. Created with <code>s.statusEffect()</code>. See <a href="#status-effects">Status Effects</a>.</td>
+            </tr>
+            <tr>
+              <td><code>effectDuration</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Number of turns the status effect lasts. Only meaningful when <code>effect</code> is set.</td>
+            </tr>
+            <tr>
+              <td><code>targetsCount</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>Number of targets the ability hits. Targets are chosen by proximity to the aim point.</td>
+            </tr>
+            <tr>
+              <td><code>targetType</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">"enemy"</span></td>
+              <td>Who can be targeted: <code>"enemy"</code>, <code>"ally"</code>, <code>"building"</code>, or <code>"any"</code>.</td>
+            </tr>
+            <tr>
+              <td><code>healAmount</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>HP restored to the target. Used for healing abilities (typically with <code>targetType: "ally"</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- ── DAMAGE TYPES ────────────────────────────────────────────── -->
+
+        <h2 id="damage-types">Damage Types</h2>
+        <p>Every damaging ability has a <code>damageType</code> that determines how it interacts with unit resistances. The engine ships with five built-in types, but you can define any custom string.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>physical</code></td><td>Standard weapon damage. Reduced by the target's <code>defense</code> stat.</td></tr>
+            <tr><td><code>fire</code></td><td>Elemental fire. Often paired with a burn status effect.</td></tr>
+            <tr><td><code>poison</code></td><td>Toxic damage. Commonly applies damage-over-time effects.</td></tr>
+            <tr><td><code>energy</code></td><td>Sci-fi energy weapons. Ignores a portion of physical defense.</td></tr>
+            <tr><td><code>radiation</code></td><td>Area denial damage. Often used with overlays.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+          <p>Custom damage types are allowed. Just use any string &mdash; for example <code>damageType: "arcane"</code>. Pair it with a matching resistance key on your units to create unique damage interactions.</p>
+        </div>
+
+        <!-- ── AOE ATTACKS ─────────────────────────────────────────────── -->
+
+        <h2 id="aoe-attacks">AOE Attacks</h2>
+        <p>When <code>aoeRadius</code> is greater than 0, the ability targets a hex tile rather than a single unit. All valid targets (based on <code>targetType</code>) within the radius take the full damage.</p>
+
+        <pre><code>s.ability("fireball", {
+  damage: 30,
+  damageType: "fire",
+  range: 4,
+  aoeRadius: 2,
+  cooldown: 3,
+  effect: s.statusEffect({
+    damagePerTurn: 5,
+    damageType: "fire",
+    duration: 2,
+    color: "#ff4500"
+  }),
+  effectDuration: 2
+});</code></pre>
+
+        <p>The fireball hits every enemy within 2 tiles of the target for 30 fire damage and applies a burn that deals 5 fire damage per turn for 2 turns.</p>
+
+        <div class="callout callout-warning">
+          <p>AOE abilities cannot distinguish between targets within the radius. If <code>targetType</code> is <code>"any"</code>, friendly units will also take damage. Plan AOE ranges carefully.</p>
+        </div>
+
+        <!-- ── COOLDOWN SYSTEM ─────────────────────────────────────────── -->
+
+        <h2 id="cooldown-system">Cooldown System</h2>
+        <p>Cooldowns are tracked per unit instance, not globally. When a unit uses an ability, that ability becomes unavailable for <code>cooldown</code> turns. A cooldown of <code>1</code> means the ability can be used every turn. A cooldown of <code>3</code> means two turns must pass after use before the ability is available again.</p>
+
+        <pre><code>// Available every turn
+s.ability("slash", { damage: 15, cooldown: 1 });
+
+// Available every 3rd turn
+s.ability("power_strike", { damage: 45, cooldown: 3 });</code></pre>
+
+        <div class="callout callout-info">
+          <p>Cooldowns start counting after the turn the ability is used. A cooldown of 2 means: use on turn 1, skip turn 2, available again on turn 3.</p>
+        </div>
+
+        <!-- ── STATUS EFFECTS ──────────────────────────────────────────── -->
+
+        <h2 id="status-effects">Status Effects</h2>
+        <p>Create status effects with <code>s.statusEffect()</code> and attach them to abilities via the <code>effect</code> parameter. When the ability hits, the effect is applied to the target for <code>effectDuration</code> turns.</p>
+
+        <h3 id="status-effect-params">s.statusEffect() Parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>duration</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">1</span></td>
+              <td>How many turns the effect persists.</td>
+            </tr>
+            <tr>
+              <td><code>blocksMove</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">false</span></td>
+              <td>Prevents the affected unit from moving.</td>
+            </tr>
+            <tr>
+              <td><code>blocksAttack</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">false</span></td>
+              <td>Prevents the affected unit from attacking or using abilities.</td>
+            </tr>
+            <tr>
+              <td><code>damagePerTurn</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Damage dealt to the unit at the start of each turn.</td>
+            </tr>
+            <tr>
+              <td><code>damageType</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">"physical"</span></td>
+              <td>Damage type for <code>damagePerTurn</code>. Interacts with resistances.</td>
+            </tr>
+            <tr>
+              <td><code>color</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>Hex color for the visual indicator shown on the affected unit.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>// Stun: blocks both movement and attacks for 1 turn
+const stun = s.statusEffect({
+  duration: 1,
+  blocksMove: true,
+  blocksAttack: true,
+  color: "#ffff00"
+});
+
+// Poison: damage over time for 3 turns
+const poison = s.statusEffect({
+  duration: 3,
+  damagePerTurn: 8,
+  damageType: "poison",
+  color: "#00ff66"
+});</code></pre>
+
+        <!-- ── TARGET TYPES ────────────────────────────────────────────── -->
+
+        <h2 id="target-types">Target Types</h2>
+        <p>The <code>targetType</code> parameter controls what the ability can be aimed at.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Value</th>
+              <th>Valid Targets</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>"enemy"</code></td><td>Opposing team's units only.</td></tr>
+            <tr><td><code>"ally"</code></td><td>Own team's units (including self).</td></tr>
+            <tr><td><code>"building"</code></td><td>Any building (friend or foe).</td></tr>
+            <tr><td><code>"any"</code></td><td>Any unit or building regardless of team.</td></tr>
+          </tbody>
+        </table>
+
+        <!-- ── MULTI-TARGET ────────────────────────────────────────────── -->
+
+        <h2 id="multi-target">Multi-Target Abilities</h2>
+        <p>Set <code>targetsCount</code> to hit more than one target per use. The engine selects the closest valid targets to the aim point. This is different from AOE &mdash; multi-target hits specific units, while AOE hits an area.</p>
+
+        <pre><code>s.ability("volley", {
+  damage: 15,
+  range: 5,
+  targetsCount: 3,
+  aoeRadius: 1,
+  cooldown: 2,
+  targetType: "enemy"
+});</code></pre>
+
+        <p>Volley selects up to 3 enemies within range and hits each one plus all enemies within 1 tile of each target.</p>
+
+        <!-- ── HEALING ─────────────────────────────────────────────────── -->
+
+        <h2 id="healing">Healing Abilities</h2>
+        <p>Use <code>healAmount</code> with <code>targetType: "ally"</code> to create healing abilities. Healing abilities can also have AOE and multi-target.</p>
+
+        <pre><code>s.ability("healAlly", {
+  healAmount: 30,
+  range: 3,
+  cooldown: 2,
+  targetType: "ally"
+});</code></pre>
+
+        <div class="callout callout-info">
+          <p>Healing cannot exceed a unit's maximum HP. Over-healing is wasted.</p>
+        </div>
+
+        <!-- ── RESOURCE COST ───────────────────────────────────────────── -->
+
+        <h2 id="resource-cost">Resource Cost</h2>
+        <p>Powerful abilities can require resources to activate. The player must have sufficient resources or the ability is grayed out.</p>
+
+        <pre><code>s.ability("bombardment", {
+  damage: 80,
+  damageType: "physical",
+  range: 6,
+  aoeRadius: 2,
+  cooldown: 4,
+  cost: { gold: 30 },
+  targetType: "any"
+});</code></pre>
+
+        <p>Bombardment costs 30 gold per use, making it a powerful but expensive siege tool.</p>
+
+        <!-- ── AURAS ───────────────────────────────────────────────────── -->
+
+        <h2 id="auras">Auras &mdash; s.aura()</h2>
+        <p>Auras are passive effects that radiate from buildings (or units with aura properties). Unlike abilities, auras are always active and do not require activation. Create them with <code>s.aura()</code>.</p>
+
+        <h3 id="aura-params">s.aura() Parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>effect</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-required">required</span></td>
+              <td>An object of stat bonuses applied to units in range. Keys are any stat name, values are the bonus amount (e.g. <code>{ attack: 5, defense: 3 }</code>).</td>
+            </tr>
+            <tr>
+              <td><code>stackable</code></td>
+              <td><span class="badge badge-type">boolean</span></td>
+              <td><span class="badge badge-default">false</span></td>
+              <td>When <code>true</code>, multiple instances of the same aura stack. When <code>false</code>, only the strongest instance applies.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>// Non-stacking morale aura
+s.aura({
+  effect: { morale: 5, attack: 2 },
+  stackable: false
+});
+
+// Stacking experience aura (multiple academies add up)
+s.aura({
+  effect: { expGain: 0.5 },
+  stackable: true
+});</code></pre>
+
+        <div class="callout callout-info">
+          <p>Auras are assigned to buildings via the <code>aura</code> property and take effect within <code>auraRadius</code> tiles. See <a href="buildings.html#auras">Buildings &mdash; Auras</a> for usage examples.</p>
+        </div>
+
+        <!-- ── OVERLAYS ────────────────────────────────────────────────── -->
+
+        <h2 id="overlays">Overlays &mdash; s.overlay()</h2>
+        <p>Overlays are persistent terrain effects placed on hex tiles. They can deal damage, apply effects, and spread to adjacent tiles. Create them with <code>s.overlay()</code>.</p>
+
+        <h3 id="overlay-params">s.overlay() Parameters</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Default</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>color</code></td>
+              <td><span class="badge badge-type">string</span></td>
+              <td><span class="badge badge-required">required</span></td>
+              <td>Hex color of the overlay rendered on the tile.</td>
+            </tr>
+            <tr>
+              <td><code>opacity</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0.5</span></td>
+              <td>Transparency of the overlay (0.0 to 1.0).</td>
+            </tr>
+            <tr>
+              <td><code>damagePerTurn</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Damage dealt to any unit standing on the tile each turn.</td>
+            </tr>
+            <tr>
+              <td><code>spreadChance</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">0</span></td>
+              <td>Probability (0.0 to 1.0) that the overlay spreads to an adjacent tile each turn.</td>
+            </tr>
+            <tr>
+              <td><code>duration</code></td>
+              <td><span class="badge badge-type">number</span></td>
+              <td><span class="badge badge-default">-1</span></td>
+              <td>Turns until the overlay disappears. <code>-1</code> means permanent.</td>
+            </tr>
+            <tr>
+              <td><code>effect</code></td>
+              <td><span class="badge badge-type">object</span></td>
+              <td><span class="badge badge-default">null</span></td>
+              <td>A status effect (from <code>s.statusEffect()</code>) applied to units that enter the tile.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <pre><code>// Spreading fire overlay
+s.overlay("fire_zone", {
+  color: "#ff4500",
+  opacity: 0.4,
+  damagePerTurn: 10,
+  damageType: "fire",
+  spreadChance: 0.3,
+  duration: 5
+});
+
+// Radiation zone with movement slow
+s.overlay("radiation", {
+  color: "#00ff00",
+  opacity: 0.3,
+  damagePerTurn: 5,
+  damageType: "radiation",
+  spreadChance: 0.1,
+  duration: -1,
+  effect: s.statusEffect({
+    blocksMove: false,
+    damagePerTurn: 3,
+    damageType: "radiation",
+    duration: 2,
+    color: "#00ff00"
+  })
+});</code></pre>
+
+        <div class="callout callout-danger">
+          <p>Overlays with <code>spreadChance</code> greater than 0 can grow out of control. Always set a finite <code>duration</code> for spreading overlays, or they may eventually cover the entire map.</p>
+        </div>
+
+        <!-- ── CASTLE EXAMPLES ─────────────────────────────────────────── -->
+
+        <h2 id="castle-examples">Castle Scenario Examples</h2>
+        <p>The official Castle scenario showcases a range of medieval-themed abilities.</p>
+
+        <h3 id="castle-charge">Charge (Stun)</h3>
+        <p>A knight ability that deals damage and stuns the target for 1 turn.</p>
+        <pre><code>s.ability("charge", {
+  damage: 20,
+  damageType: "physical",
+  range: 2,
+  cooldown: 3,
+  effect: s.statusEffect({
+    duration: 1,
+    blocksMove: true,
+    blocksAttack: true,
+    color: "#ffff00"
+  }),
+  effectDuration: 1,
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="castle-volley">Volley (Multi-Target AOE)</h3>
+        <p>Archers fire at multiple enemies simultaneously, with a small splash on each target.</p>
+        <pre><code>s.ability("volley", {
+  damage: 15,
+  damageType: "physical",
+  range: 5,
+  cooldown: 2,
+  targetsCount: 3,
+  aoeRadius: 1,
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="castle-fireball">Fireball (Fire + Burn)</h3>
+        <p>A mage spell that deals fire damage in an area and leaves a burn on hit targets.</p>
+        <pre><code>s.ability("fireball", {
+  damage: 30,
+  damageType: "fire",
+  range: 4,
+  aoeRadius: 2,
+  cooldown: 3,
+  effect: s.statusEffect({
+    damagePerTurn: 5,
+    damageType: "fire",
+    duration: 2,
+    color: "#ff4500"
+  }),
+  effectDuration: 2,
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="castle-heal">Heal Ally</h3>
+        <p>A cleric ability that restores HP to a friendly unit.</p>
+        <pre><code>s.ability("healAlly", {
+  healAmount: 30,
+  range: 3,
+  cooldown: 2,
+  targetType: "ally"
+});</code></pre>
+
+        <h3 id="castle-firebreath">Fire Breath (Dragon AOE)</h3>
+        <p>A dragon's breath weapon. High damage in a cone-like area with a large radius.</p>
+        <pre><code>s.ability("fireBreath", {
+  damage: 40,
+  damageType: "fire",
+  range: 2,
+  aoeRadius: 3,
+  cooldown: 4,
+  effect: s.statusEffect({
+    damagePerTurn: 8,
+    damageType: "fire",
+    duration: 3,
+    color: "#ff6600"
+  }),
+  effectDuration: 3,
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="castle-bombardment">Bombardment (Siege)</h3>
+        <p>A catapult ability with long range, massive AOE, and a gold cost per use.</p>
+        <pre><code>s.ability("bombardment", {
+  damage: 80,
+  damageType: "physical",
+  range: 6,
+  aoeRadius: 2,
+  cooldown: 4,
+  cost: { gold: 30 },
+  targetType: "any"
+});</code></pre>
+
+        <!-- ── CYBERPUNK EXAMPLES ──────────────────────────────────────── -->
+
+        <h2 id="cyberpunk-examples">Cyberpunk Scenario Examples</h2>
+        <p>The Cyberpunk scenario features tech-based abilities with energy costs and status effects.</p>
+
+        <h3 id="cyber-emp">EMP (Disable AOE)</h3>
+        <p>Disables all mechanical units in an area, blocking their movement and attacks.</p>
+        <pre><code>s.ability("emp", {
+  damage: 10,
+  damageType: "energy",
+  range: 4,
+  aoeRadius: 3,
+  cooldown: 4,
+  cost: { energy: 40 },
+  effect: s.statusEffect({
+    duration: 2,
+    blocksMove: true,
+    blocksAttack: true,
+    color: "#00bfff"
+  }),
+  effectDuration: 2,
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="cyber-overclock">Overclock (Self-Buff)</h3>
+        <p>A cyborg boosts its own stats temporarily. Targets self (ally) with a beneficial status.</p>
+        <pre><code>s.ability("overclock", {
+  range: 0,
+  cooldown: 3,
+  cost: { energy: 20 },
+  effect: s.statusEffect({
+    duration: 2,
+    color: "#ff00ff"
+  }),
+  effectDuration: 2,
+  targetType: "ally"
+});
+// Note: the stat bonuses are applied through the effect's
+// integration with the unit's base stats (+attack, +speed).</code></pre>
+
+        <h3 id="cyber-datasteal">Data Steal (Building Disable)</h3>
+        <p>A hacker ability that targets enemy buildings, disabling them temporarily.</p>
+        <pre><code>s.ability("dataSteal", {
+  damage: 0,
+  range: 3,
+  cooldown: 5,
+  cost: { data: 25 },
+  effect: s.statusEffect({
+    duration: 3,
+    blocksAttack: true,
+    color: "#9900ff"
+  }),
+  effectDuration: 3,
+  targetType: "building"
+});</code></pre>
+
+        <h3 id="cyber-plasma">Plasma Beam (Single Target)</h3>
+        <p>A focused high-damage energy beam with a damage multiplier.</p>
+        <pre><code>s.ability("plasmaBeam", {
+  damage: 50,
+  damageMulti: 1.5,
+  damageType: "energy",
+  range: 5,
+  cooldown: 3,
+  cost: { energy: 30 },
+  targetType: "enemy"
+});</code></pre>
+
+        <h3 id="cyber-selfdestruct">Self-Destruct (Suicide AOE)</h3>
+        <p>A drone detonates itself, dealing massive damage in a wide area. The unit is destroyed after use.</p>
+        <pre><code>s.ability("selfDestruct", {
+  damage: 100,
+  damageType: "energy",
+  range: 0,
+  aoeRadius: 3,
+  cooldown: 1,
+  targetType: "any"
+});
+// The unit's hp is set to 0 after activation via an event hook.
+// See Events for on-ability-used triggers.</code></pre>
+
+        <div class="callout callout-tip">
+          <p>Self-destruct abilities typically use <code>range: 0</code> (centered on self) and <code>targetType: "any"</code> so they hit everything nearby. Wire the unit's death to an <a href="events.html">event</a> that fires after the ability resolves.</p>
+        </div>
+
+        <!-- ── NEXT STEPS ──────────────────────────────────────────────── -->
+
+        <h2 id="next-steps">Next Steps</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">Units</h4>
+            <p class="text-muted">Assign abilities to units and tune their combat stats.</p>
+            <p><a href="units.html">Design units &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Buildings</h4>
+            <p class="text-muted">Give buildings auras and auto-attack capabilities.</p>
+            <p><a href="buildings.html">Build structures &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Events</h4>
+            <p class="text-muted">Trigger scripts when abilities are used, units die, or buildings fall.</p>
+            <p><a href="events.html">Set up events &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Examples</h4>
+            <p class="text-muted">Full annotated walkthroughs of Castle and Cyberpunk scenarios.</p>
+            <p><a href="examples.html">See examples &rarr;</a></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

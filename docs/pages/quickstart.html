@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Quick Start
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html" class="active">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Quick Start</h1>
+        <p class="lead">Get your first scenario running in 5 minutes.</p>
+
+        <h2 id="prerequisites">Prerequisites</h2>
+        <p>All you need is the <strong>CodeHex server</strong> installed and ready to run. The server includes the template scenario and all tooling required to load custom content.</p>
+
+        <div class="callout callout-info">
+          <p>No build tools, compilers, or additional dependencies are required. Scenarios are plain JavaScript files loaded directly by the server at startup.</p>
+        </div>
+
+        <h2 id="steps">Steps</h2>
+        <div class="steps">
+
+          <div class="step">
+            <h3 class="mt-0">Copy the template</h3>
+            <p>The repository ships with a fully commented <code>template/</code> directory that works out of the box. Start by copying it:</p>
+            <pre><code>cp -r template/ my_scenario/</code></pre>
+            <p>This gives you a complete <code>scenario.js</code> with every DSL function stubbed out and documented.</p>
+          </div>
+
+          <div class="step">
+            <h3 class="mt-0">Edit the scenario file</h3>
+            <p>Open <code>my_scenario/scenario.js</code> in any editor and start customizing. Here is a minimal working scenario with all the essentials:</p>
+            <pre><code>scenario("my_scenario", s =&gt; {
+
+  // Give your scenario a display name
+  s.name("My First Scenario");
+
+  // Define at least one biome
+  s.biome("grassland", {
+    color: "#7ec850",
+    moveCost: 1
+  });
+
+  // Add a resource players can collect
+  s.resource("gold", {
+    color: "#ffd700",
+    rarity: "common"
+  });
+
+  // Create a basic unit
+  s.unit("soldier", {
+    hp: 50,
+    attack: 10,
+    defense: 5,
+    cost: { gold: 20 },
+    color: "#e53935"
+  });
+
+  // Place a production building
+  s.building("barracks", {
+    hp: 200,
+    cost: { gold: 60 },
+    produces: ["soldier"],
+    color: "#8d6e63"
+  });
+
+  // Configure map generation
+  s.mapgen({
+    size: 48,
+    biomes: {
+      grassland: { weight: 1.0 }
+    }
+  });
+
+  // Starting conditions for each player
+  s.startCondition({
+    resources: { gold: 100 },
+    units: ["soldier"],
+    buildings: ["barracks"]
+  });
+
+  // How a player wins the game
+  s.victoryCondition({
+    type: "domination",
+    threshold: 0.7
+  });
+
+});</code></pre>
+
+            <div class="callout callout-tip">
+              <p>You can add more biomes, units, buildings, abilities, and events at any time. See the <a href="dsl-reference.html">DSL Reference</a> for every available function and parameter.</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <h3 class="mt-0">Copy to the server</h3>
+            <p>Move your finished scenario folder into the server's <code>scenarios/</code> directory:</p>
+            <pre><code>cp -r my_scenario/ codehex-server/scenarios/my_scenario/</code></pre>
+          </div>
+
+          <div class="step">
+            <h3 class="mt-0">Set the active scenario in config.json</h3>
+            <p>Open the server's <code>config.json</code> and point it at your new scenario:</p>
+            <pre><code>{ "scenario": "my_scenario" }</code></pre>
+          </div>
+
+          <div class="step">
+            <h3 class="mt-0">Start the server and verify</h3>
+            <p>Launch the CodeHex server:</p>
+            <pre><code>npm start</code></pre>
+            <p>Watch the console output. You should see a log line confirming your scenario was loaded:</p>
+            <pre><code>[CodeHex] Scenario "my_scenario" loaded successfully.</code></pre>
+
+            <div class="callout callout-info">
+              <p>If you see an error instead, double-check that your <code>scenario.js</code> has no syntax errors and that the folder name in <code>config.json</code> matches the directory you copied.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <h2 id="whats-next">What's Next</h2>
+        <p>Your scenario is live. Here are the best places to go from here:</p>
+        <div class="grid-2">
+          <div class="card">
+            <h4 class="mt-0">DSL Reference</h4>
+            <p class="text-muted">Every function and every parameter, fully documented.</p>
+            <p><a href="dsl-reference.html">Read the reference &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Biomes</h4>
+            <p class="text-muted">Learn how terrain types affect movement, combat, and strategy.</p>
+            <p><a href="biomes.html">Explore biomes &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Units</h4>
+            <p class="text-muted">Design combat units with stats, abilities, and upgrade paths.</p>
+            <p><a href="units.html">Design units &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Buildings</h4>
+            <p class="text-muted">Set up production chains, upgrades, and defensive structures.</p>
+            <p><a href="buildings.html">Build structures &rarr;</a></p>
+          </div>
+          <div class="card">
+            <h4 class="mt-0">Examples</h4>
+            <p class="text-muted">Full annotated walkthroughs of the official Castle and Cyberpunk scenarios.</p>
+            <p><a href="examples.html">See examples &rarr;</a></p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>

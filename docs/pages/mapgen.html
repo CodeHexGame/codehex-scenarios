@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<!--
+  CodeHex Scenarios Documentation — Map Generation
+  Static site, opens in any browser without a server.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Map Generation — CodeHex Scenarios</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <button class="menu-toggle" aria-label="Toggle menu">&#9776;</button>
+  <div class="layout">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <h1>CodeHex</h1>
+        <div class="subtitle">Scenarios Docs</div>
+      </div>
+      <div class="sidebar-nav">
+        <a href="../index.html">Home</a>
+        <a href="quickstart.html">Quick Start</a>
+        <div class="section-label">Reference</div>
+        <a href="dsl-reference.html">DSL Reference</a>
+        <div class="section-label">Guides</div>
+        <a href="biomes.html">Biomes</a>
+        <a href="units.html">Units</a>
+        <a href="buildings.html">Buildings</a>
+        <a href="abilities.html">Abilities</a>
+        <a href="events.html">Events</a>
+        <a href="mapgen.html" class="active">Map Generation</a>
+        <div class="section-label">Assets</div>
+        <a href="sprites.html">Sprites</a>
+        <a href="audio.html">Audio</a>
+        <div class="section-label">Learn</div>
+        <a href="examples.html">Examples</a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <h1>Map Generation</h1>
+        <p class="lead">Control how the server builds hex grids — biome distribution, resource scattering, terrain clusters, rivers, and spawn zones.</p>
+
+        <h2 id="how-mapgen-works">How Map Generation Works</h2>
+        <p>When a game starts, the server generates the hex grid in a fixed pipeline:</p>
+        <ol>
+          <li><strong>Allocate cells</strong> — create an empty hex grid of the configured size.</li>
+          <li><strong>Apply biome weights</strong> — assign each cell a biome based on the weight distribution you define.</li>
+          <li><strong>Generate clusters</strong> — override cells to create grouped patches of specific biomes.</li>
+          <li><strong>Carve rivers</strong> — lay down connected water-biome paths across the map.</li>
+          <li><strong>Scatter resources</strong> — randomly place resource deposits on eligible cells.</li>
+          <li><strong>Place neutral buildings</strong> — add capturable structures at valid locations.</li>
+          <li><strong>Clear spawn zones</strong> — remove obstacles near each player's starting position.</li>
+        </ol>
+
+        <p>Each step is controlled by a dedicated DSL function inside the <code>s.mapgen()</code> block. The order you call them does not matter — the server always executes the pipeline in the order above.</p>
+
+        <pre><code>s.mapgen(g =&gt; {
+  g.size(48);
+
+  // Biome weights (must sum to 1.0)
+  g.biome("plains",   0.40);
+  g.biome("forest",   0.25);
+  g.biome("mountain", 0.20);
+  g.biome("water",    0.10);
+  g.biome("lava",     0.05);
+
+  // Terrain clusters
+  g.clusters("forest",   { minSize: 4, maxSize: 8, count: 6 });
+  g.clusters("mountain", { minSize: 3, maxSize: 6, count: 4 });
+
+  // Rivers
+  g.rivers({ count: 2, minLength: 8, maxLength: 16 });
+
+  // Resources
+  g.scatter("gold", { biome: "mountain", density: 0.08 });
+  g.scatter("wood", { biome: "forest",   density: 0.12 });
+
+  // Neutral buildings
+  g.placeNeutralBuilding("watchtower", { count: 4 });
+
+  // Clear around spawn
+  g.clearAroundStart(3);
+});</code></pre>
+
+        <h2 id="biome-weights">g.biome(name, weight)</h2>
+        <p>Define the base probability that any given cell will be assigned a specific biome during the initial distribution pass.</p>
+
+        <pre><code>g.biome("plains",   0.40);
+g.biome("forest",   0.25);
+g.biome("mountain", 0.20);
+g.biome("water",    0.10);
+g.biome("lava",     0.05);
+// Total: 1.00</code></pre>
+
+        <div class="callout callout-info">
+          <p>Weights <strong>must</strong> sum to <code>1.0</code> (the server tolerates &plusmn;0.01 for floating-point rounding). If the total is outside this range, the server will reject the scenario at load time.</p>
+        </div>
+
+        <h3 id="weight-calculation">Weight Calculation Example</h3>
+        <p>On a 48-hex grid with 2,304 total cells:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Biome</th>
+              <th>Weight</th>
+              <th>Expected cells</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>plains</td>
+              <td>0.40</td>
+              <td>~922</td>
+            </tr>
+            <tr>
+              <td>forest</td>
+              <td>0.25</td>
+              <td>~576</td>
+            </tr>
+            <tr>
+              <td>mountain</td>
+              <td>0.20</td>
+              <td>~461</td>
+            </tr>
+            <tr>
+              <td>water</td>
+              <td>0.10</td>
+              <td>~230</td>
+            </tr>
+            <tr>
+              <td>lava</td>
+              <td>0.05</td>
+              <td>~115</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>These are <em>expected</em> counts before clusters and rivers modify the map. Actual numbers will vary per seed.</p>
+
+        <h2 id="scatter">g.scatter(resource, { biome, density })</h2>
+        <p>Randomly place resource deposits across cells of a given biome. Each eligible cell has a <code>density</code> probability of receiving a deposit.</p>
+
+        <pre><code>g.scatter("gold", { biome: "mountain", density: 0.08 });
+g.scatter("wood", { biome: "forest",   density: 0.12 });</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>resource</code></td>
+              <td><code>string</code></td>
+              <td>Name of the resource to place (must match a defined <code>s.resource()</code>).</td>
+            </tr>
+            <tr>
+              <td><code>biome</code></td>
+              <td><code>string</code></td>
+              <td>Only place deposits on cells of this biome.</td>
+            </tr>
+            <tr>
+              <td><code>density</code></td>
+              <td><code>number</code></td>
+              <td>Probability per eligible cell, from <code>0.0</code> to <code>1.0</code>. Typical range: <strong>0.01&ndash;0.15</strong>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="clusters">g.clusters(biome, { minSize, maxSize, count })</h2>
+        <p>Generate grouped patches of a biome, overriding whatever biome was originally assigned. Clusters create natural-looking terrain features like dense forests or mountain ranges.</p>
+
+        <pre><code>g.clusters("forest",   { minSize: 4, maxSize: 8, count: 6 });
+g.clusters("mountain", { minSize: 3, maxSize: 6, count: 4 });</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>biome</code></td>
+              <td><code>string</code></td>
+              <td>The biome type for the cluster.</td>
+            </tr>
+            <tr>
+              <td><code>minSize</code></td>
+              <td><code>number</code></td>
+              <td>Minimum number of cells per cluster.</td>
+            </tr>
+            <tr>
+              <td><code>maxSize</code></td>
+              <td><code>number</code></td>
+              <td>Maximum number of cells per cluster.</td>
+            </tr>
+            <tr>
+              <td><code>count</code></td>
+              <td><code>number</code></td>
+              <td>How many clusters of this biome to generate.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="rivers">g.rivers({ count, minLength, maxLength })</h2>
+        <p>Carve river paths across the map. Rivers convert cells along their path to the <code>water</code> biome, creating natural barriers and strategic chokepoints.</p>
+
+        <pre><code>g.rivers({ count: 2, minLength: 8, maxLength: 16 });</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>count</code></td>
+              <td><code>number</code></td>
+              <td>Number of rivers to generate.</td>
+            </tr>
+            <tr>
+              <td><code>minLength</code></td>
+              <td><code>number</code></td>
+              <td>Minimum river length in cells.</td>
+            </tr>
+            <tr>
+              <td><code>maxLength</code></td>
+              <td><code>number</code></td>
+              <td>Maximum river length in cells.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="clear-around-start">g.clearAroundStart(radius)</h2>
+        <p>Remove obstacles, hostile terrain, and neutral units within <code>radius</code> hexes of each player's spawn point. This ensures every player starts on navigable ground with room to build.</p>
+
+        <pre><code>g.clearAroundStart(3);</code></pre>
+
+        <div class="callout callout-tip">
+          <p>The recommended radius is <strong>2&ndash;4</strong>. A radius of 2 gives a tight start; 4 gives a comfortable buffer. Values below 2 risk spawning players on impassable terrain.</p>
+        </div>
+
+        <div class="callout callout-info">
+          <p><code>clearAroundStart</code> is <strong>critical for fairness</strong>. Without it, some players may spawn surrounded by mountains or water with no room to expand, while others land on open plains. Always include this in competitive scenarios.</p>
+        </div>
+
+        <h2 id="neutral-buildings">g.placeNeutralBuilding(type, { count, biome? })</h2>
+        <p>Place capturable neutral buildings on the map. These give players strategic objectives to contest.</p>
+
+        <pre><code>g.placeNeutralBuilding("watchtower", { count: 4 });
+g.placeNeutralBuilding("gold_mine",  { count: 3, biome: "mountain" });</code></pre>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Type</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>type</code></td>
+              <td><code>string</code></td>
+              <td>Building type name (must match a defined <code>s.building()</code>).</td>
+            </tr>
+            <tr>
+              <td><code>count</code></td>
+              <td><code>number</code></td>
+              <td>How many to place on the map.</td>
+            </tr>
+            <tr>
+              <td><code>biome</code></td>
+              <td><code>string</code></td>
+              <td>Optional. Restrict placement to cells of this biome.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2 id="seed">Seed for Reproducibility</h2>
+        <p>The map generation seed is set in the <strong>server configuration</strong> (<code>config.json</code>), not in the scenario DSL. This allows the same scenario to produce different maps per game, or identical maps for testing.</p>
+
+        <pre><code>// config.json
+{
+  "scenario": "castle",
+  "mapSeed": 42
+}</code></pre>
+
+        <p>When <code>mapSeed</code> is set, every game with that scenario will produce the exact same map. Omit it for random generation each game.</p>
+
+        <h2 id="balance-tips">Balance Tips</h2>
+        <ul>
+          <li><strong>Always use <code>clearAroundStart</code>.</strong> This is the single most important fairness mechanism. Without it, spawn placement is a lottery.</li>
+          <li><strong>Keep dominant biomes under 50%.</strong> A single biome above 50% weight makes the map feel monotonous. Aim for the primary biome at 30&ndash;40%.</li>
+          <li><strong>Use clusters to create strategic terrain.</strong> Dense forest clusters become ambush zones; mountain ranges become natural walls. Clusters add tactical depth beyond raw biome weights.</li>
+          <li><strong>Scale resources to map size.</strong> A density of 0.08 on a small map yields few deposits. Adjust density up for smaller maps or down for larger ones.</li>
+          <li><strong>Rivers create natural borders.</strong> Two or three rivers can divide the map into contested sectors, encouraging conflict at crossing points.</li>
+          <li><strong>Test with a fixed seed.</strong> During development, set <code>mapSeed</code> in your config so you can iterate on balance without map variance muddying the results.</li>
+        </ul>
+
+        <h2 id="castle-example">Castle: Age of Kingdoms Example</h2>
+        <p>The Castle scenario uses a 40/25/20/10/5 biome split with forest and mountain clusters and 2 rivers.</p>
+
+        <pre><code>s.mapgen(g =&gt; {
+  g.size(48);
+
+  // Biome weights: 40/25/20/10/5
+  g.biome("plains",   0.40);
+  g.biome("forest",   0.25);
+  g.biome("mountain", 0.20);
+  g.biome("water",    0.10);
+  g.biome("lava",     0.05);
+
+  // Dense forest groves and mountain ranges
+  g.clusters("forest",   { minSize: 4, maxSize: 8, count: 6 });
+  g.clusters("mountain", { minSize: 3, maxSize: 6, count: 4 });
+
+  // Two rivers winding across the map
+  g.rivers({ count: 2, minLength: 8, maxLength: 16 });
+
+  // Gold in mountains, wood in forests
+  g.scatter("gold", { biome: "mountain", density: 0.08 });
+  g.scatter("wood", { biome: "forest",   density: 0.12 });
+
+  // Neutral watchtowers to contest
+  g.placeNeutralBuilding("watchtower", { count: 4 });
+  g.placeNeutralBuilding("gold_mine",  { count: 3, biome: "mountain" });
+
+  // Fair starts
+  g.clearAroundStart(3);
+});</code></pre>
+
+        <h2 id="cyberpunk-example">Cyberpunk: Scorched Network Example</h2>
+        <p>The Cyberpunk scenario uses a 35/30/15/10/10 biome split with ruins and toxic clusters, no rivers, and neutral recycler buildings.</p>
+
+        <pre><code>s.mapgen(g =&gt; {
+  g.size(48);
+
+  // Biome weights: 35/30/15/10/10
+  g.biome("wasteland",   0.35);
+  g.biome("ruins",       0.30);
+  g.biome("toxic_zone",  0.15);
+  g.biome("data_stream", 0.10);
+  g.biome("bunker",      0.10);
+
+  // Ruined city blocks and toxic waste dumps
+  g.clusters("ruins",      { minSize: 5, maxSize: 10, count: 5 });
+  g.clusters("toxic_zone", { minSize: 3, maxSize: 7,  count: 4 });
+
+  // No rivers in the scorched wasteland
+
+  // Scrap in ruins, energy in data streams
+  g.scatter("scrap",  { biome: "ruins",       density: 0.10 });
+  g.scatter("energy", { biome: "data_stream", density: 0.08 });
+
+  // Neutral recyclers for resource conversion
+  g.placeNeutralBuilding("recycler", { count: 5, biome: "ruins" });
+
+  // Fair starts
+  g.clearAroundStart(3);
+});</code></pre>
+
+      </div>
+    </main>
+  </div>
+  <script src="../script.js"></script>
+</body>
+</html>
